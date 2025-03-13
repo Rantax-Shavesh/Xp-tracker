@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shadow XP Tracker</title>
+  <style>
+    body {
+      background-color: #0b0c1a;
+      color: #b3cfff;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: #4da6ff;
+      text-shadow: 0 0 10px #4da6ff;
+    }
+    .title-badge {
+      display: inline-block;
+      background: #4da6ff;
+      color: #000;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .xp-bar-container {
+      background: #333;
+      border-radius: 10px;
+      overflow: hidden;
+      width: 100%;
+      height: 30px;
+      margin: 10px 0;
+    }
+    .xp-bar {
+      height: 100%;
+      background: linear-gradient(to right, #4da6ff, #004080);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+      width: 100%;
+    }
+    button {
+      background-color: #4da6ff;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .floating-box {
+      border: 1px solid #4da6ff;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.03);
+      box-shadow: 0 0 10px #4da6ff;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #4da6ff44;
+    }
+    th {
+      color: #4da6ff;
+    }
+    .tag {
+      background-color: #4da6ff;
+      color: #000;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Shadow XP Tracker</h1>
+<div id="titleDisplay" class="title-badge">Novice Shadow</div>
+<p><strong>Next Rank:</strong> <span id="nextRankName">—</span> (in <span id="levelsToNext">0</span> levels)</p>
+<p><strong>Level:</strong> <span id="level">1</span></p>
+<p><strong>Total XP:</strong> <span id="totalXP">0</span></p>
+<p><strong>XP to next level:</strong> <span id="xpToNext">100</span></p>
+<p><strong>Daily XP:</strong> <span id="dailyXP">0</span></p>
+<p><strong>Weekly XP:</strong> <span id="weeklyXP">0</span></p>
+
+<div class="xp-bar-container">
+  <div class="xp-bar" id="xpBar"></div>
+</div>
+
+<div class="floating-box">
+  <button onclick="toggleHelp()" style="margin-bottom: 15px;">Help</button>
+  <div id="helpBox" class="floating-box" style="display: none;">
+    <h3>Exercise Tutorial Videos</h3>
+    <ul>
+      <li><a href="https://youtu.be/_l3ySVKYVJ8" target="_blank">Push-ups</a></li>
+      <li><a href="https://youtu.be/aclHkVaku9U" target="_blank">Squats</a></li>
+      <li><a href="https://youtu.be/1fbU_MkV7NE" target="_blank">Sit-ups</a></li>
+      <li><a href="https://youtu.be/pSHjTRCQxIw" target="_blank">Plank</a></li>
+      <li><a href="https://youtu.be/JB2oyawG9KI" target="_blank">Leg Raises</a></li>
+      <li><a href="https://youtu.be/Kx2aMi7E7gQ" target="_blank">Flutter Kicks</a></li>
+      <li><a href="https://youtu.be/b-ztMQPdP6U" target="_blank">Chin-ups</a></li>
+      <li><a href="https://youtu.be/3FvYt6nFzNQ" target="_blank">Doorway Rows</a></li>
+      <li><a href="https://youtu.be/FuGLdKDyKQg" target="_blank">Towel Hangs</a></li>
+      <li><a href="https://youtu.be/7S7YVJYtwsw" target="_blank">Burpees</a></li>
+      <li><a href="https://youtu.be/c4DAnQ6DtF8" target="_blank">Jumping Jacks</a></li>
+      <li><a href="https://youtu.be/fcN37TxBE_s" target="_blank">Crunches</a></li>
+      <li><a href="https://youtu.be/QOVaHwm-Q6U" target="_blank">Lunges</a></li>
+      <li><a href="https://youtu.be/xfQXnVq3mrc" target="_blank">Wrist Rolls</a></li>
+      <li><a href="https://youtu.be/8BmFbzZvo7w" target="_blank">Running</a></li>
+    </ul>
+  </div>
+
+  <h2>Log Exercise</h2>
+  <input type="text" id="username" placeholder="Your Name (for leaderboard)" />
+  <div><label>Push-ups <span class="tag">Chest/Triceps</span></label><input type="number" id="pushups" /></div>
+  <div><label>Squats <span class="tag">Legs</span></label><input type="number" id="squats" /></div>
+  <div><label>Sit-ups <span class="tag">Abs</span></label><input type="number" id="situps" /></div>
+  <div><label>Jumping Jacks <span class="tag">Cardio</span></label><input type="number" id="jumpingjacks" /></div>
+  <div><label>Burpees <span class="tag">Full Body</span></label><input type="number" id="burpees" /></div>
+  <div><label>Lunges <span class="tag">Legs</span></label><input type="number" id="lunges" /></div>
+  <div><label>Running (minutes) <span class="tag">Cardio</span></label><input type="number" id="running" /></div>
+  <div><label>Plank (seconds) <span class="tag">Core</span></label><input type="number" id="plank" /></div>
+  <div><label>Chin-ups <span class="tag">Biceps</span></label><input type="number" id="chinups" /></div>
+  <div><label>Doorway Rows <span class="tag">Biceps/Back</span></label><input type="number" id="rows" /></div>
+  <div><label>Towel Hangs (seconds) <span class="tag">Forearms</span></label><input type="number" id="towel" /></div>
+  <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" /></div>
+  <div><label>Crunches <span class="tag">Abs</span></label><input type="number" id="crunches" /></div>
+  <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" /></div>
+  <div><label>Flutter Kicks (seconds) <span class="tag">Abs</span></label><input type="number" id="flutter" /></div>
+  <button onclick="logXP()">Add XP</button>
+</div>
+
+<div class="floating-box" id="legacySection" style="display:none;">
+  <h2>Legacy XP Mode</h2>
+  <p><strong>Legacy XP:</strong> <span id="legacyXP">0</span></p>
+  <p><strong>Legacy Title:</strong> <span id="legacyTitle">Secrecy</span></p>
+</div>
+
+<div class="floating-box">
+  <h2>Leaderboard</h2>
+  <table>
+    <thead><tr><th>Name</th><th>Total XP</th></tr></thead>
+    <tbody id="leaderboard"></tbody>
+  </table>
+</div>
+
+<script>
+let level = 1, xp = 0, legacyXP = 0, inLegacyMode = false;
+let today = new Date().toLocaleDateString();
+let xpHistory = JSON.parse(localStorage.getItem("xpHistory") || "{}");
+let leaderboard = JSON.parse(localStorage.getItem("xpLeaderboard") || "[]");
+
+const levelTitles = [
+  "Novice Shadow", "E-Rank Hunter", "D-Rank Hunter", "C-Rank Hunter",
+  "B-Rank Hunter", "A-Rank Hunter", "S-Rank Hunter", "Shadow Soldier",
+  "Elite Shadow", "Commander of Shadows", "Monarch in Training",
+  "Shadow Monarch", "Awakened Monarch", "Secrecy"
+];
+
+const legacyTitles = [
+  [0, "Secrecy"], [100, "Shadowborn"], [250, "Void Initiate"],
+  [500, "Abyss Walker"], [750, "Eclipse Soul"], [1000, "Shadow Ascendant"],
+  [1500, "Monarch’s Echo"], [2000, "Legacy Wielder"],
+  [3000, "Dimensional Phantom"], [5000, "Transcendent One"],
+  [7500, "Timebreaker"], [10000, "God of the Grind"]
+];
+
+function getXPFromExercise(data) {
+  return (
+    data.pushups * 5 + data.squats * 4 + data.situps * 4 + data.jumpingjacks * 3 +
+    data.burpees * 6 + data.lunges * 4 + data.running * 6 + Math.floor(data.plank / 10) * 3 +
+    data.chinups * 10 + data.rows * 6 + Math.floor(data.towel / 10) * 3 + data.wrists * 2 +
+    data.crunches * 3 + data.legraises * 4 + Math.floor(data.flutter / 10) * 3
+  );
+}
+
+function getNextXPNeeded(level) {
+  if (level <= 10) return 100;
+  if (level <= 30) return 150;
+  if (level <= 50) return 200;
+  if (level <= 70) return 250;
+  if (level <= 90) return 300;
+  return 400;
+}
+
+function xpToLevel(xp) {
+  let lvl = 1, required = 100;
+  while (xp >= required && lvl < 100) {
+    xp -= required;
+    lvl++;
+    required = getNextXPNeeded(lvl);
+  }
+  return lvl;
+}
+
+function getTitle(level) {
+  const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
+  for (let i = thresholds.length - 1; i >= 0; i--) {
+    if (level >= thresholds[i]) return levelTitles[i];
+  }
+  return levelTitles[0];
+}
+
+function getLegacyTitle(xp) {
+  let title = "Secrecy";
+  for (let i = 0; i < legacyTitles.length; i++) {
+    if (xp >= legacyTitles[i][0]) title = legacyTitles[i][1];
+  }
+  return title;
+}
+
+function updateUI() {
+  if (!inLegacyMode) {
+    level = xpToLevel(xp);
+    document.getElementById("level").innerText = level;
+    document.getElementById("totalXP").innerText = xp;
+
+    let req = getNextXPNeeded(level);
+    let xpThisLevel = xp;
+    for (let i = 1; i < level; i++) xpThisLevel -= getNextXPNeeded(i);
+
+    document.getElementById("xpToNext").innerText = req - xpThisLevel;
+    document.getElementById("xpBar").style.width = `${(xpThisLevel / req) * 100}%`;
+    document.getElementById("titleDisplay").innerText = getTitle(level);
+
+    const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
+    for (let i = 0; i < thresholds.length; i++) {
+      if (level < thresholds[i]) {
+        document.getElementById("nextRankName").innerText = levelTitles[i];
+        document.getElementById("levelsToNext").innerText = thresholds[i] - level;
+        break;
+      }
+    }
+  } else {
+    document.getElementById("legacySection").style.display = "block";
+    document.getElementById("legacyXP").innerText = legacyXP;
+    document.getElementById("legacyTitle").innerText = getLegacyTitle(legacyXP);
+  }
+
+  document.getElementById("dailyXP").innerText = xpHistory[today] || 0;
+
+  let weekTotal = 0;
+  for (const d in xpHistory) {
+    const diff = (new Date() - new Date(d)) / (1000 * 60 * 60 * 24);
+    if (diff <= 7) weekTotal += xpHistory[d];
+  }
+  document.getElementById("weeklyXP").innerText = weekTotal;
+
+  updateLeaderboard();
+}
+
+function logXP() {
+  const username = document.getElementById("username").value.trim() || "Anonymous";
+  const data = {
+    pushups: +document.getElementById("pushups").value || 0,
+    squats: +document.getElementById("squats").value || 0,
+    situps: +document.getElementById("situps").value || 0,
+    jumpingjacks: +document.getElementById("jumpingjacks").value || 0,
+    burpees: +document.getElementById("burpees").value || 0,
+    lunges: +document.getElementById("lunges").value || 0,
+    running: +document.getElementById("running").value || 0,
+    plank: +document.getElementById("plank").value || 0,
+    chinups: +document.getElementById("chinups").value || 0,
+    rows: +document.getElementById("rows").value || 0,
+    towel: +document.getElementById("towel").value || 0,
+    wrists: +document.getElementById("wrists").value || 0,
+    crunches: +document.getElementById("crunches").value || 0,
+    legraises: +document.getElementById("legraises").value || 0,
+    flutter: +document.getElementById("flutter").value || 0,
+  };
+
+  const gainedXP = getXPFromExercise(data);
+
+  if (inLegacyMode) {
+    legacyXP += gainedXP;
+  } else {
+    xp += gainedXP;
+    if (xpToLevel(xp) >= 100) inLegacyMode = true;
+  }
+
+  xpHistory[today] = (xpHistory[today] || 0) + gainedXP;
+  localStorage.setItem("xpHistory", JSON.stringify(xpHistory));
+
+  let player = leaderboard.find(p => p.name === username);
+  if (player) player.xp += gainedXP;
+  else leaderboard.push({ name: username, xp: gainedXP });
+  localStorage.setItem("xpLeaderboard", JSON.stringify(leaderboard));
+  localStorage.setItem("lastUsername", username);
+
+  updateUI();
+}
+
+function updateLeaderboard() {
+  leaderboard.sort((a, b) => b.xp - a.xp);
+  document.getElementById("leaderboard").innerHTML = leaderboard.map(p =>
+    `<tr><td>${p.name}</td><td>${p.xp}</td></tr>`
+  ).join("");
+}
+
+function toggleHelp() {
+  const helpBox = document.getElementById("helpBox");
+  helpBox.style.display = helpBox.style.display === "none" ? "block" : "none";
+}
+
+// Load last used username
+const last = localStorage.getItem("lastUsername");
+if (last) document.getElementById("username").value = last;
+
+updateUI();
+</script>
+</body>
+</html>
