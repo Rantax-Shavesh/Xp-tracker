@@ -126,6 +126,7 @@
   <div><label>Push-ups <span class="tag">Chest/Triceps</span></label><input type="number" id="pushups" /></div>
   <div><label>Squats <span class="tag">Legs</span></label><input type="number" id="squats" /></div>
   <div><label>Sit-ups <span class="tag">Abs</span></label><input type="number" id="situps" /></div>
+  <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" /></div>
   <div><label>Jumping Jacks <span class="tag">Cardio</span></label><input type="number" id="jumpingjacks" /></div>
   <div><label>Burpees <span class="tag">Full Body</span></label><input type="number" id="burpees" /></div>
   <div><label>Lunges <span class="tag">Legs</span></label><input type="number" id="lunges" /></div>
@@ -178,7 +179,7 @@ const legacyTitles = [
 
 function getXPFromExercise(data) {
   return (
-    data.pushups * 5 + data.squats * 4 + data.situps * 4 + data.jumpingjacks * 3 +
+    data.pushups * 5 + data.squats * 4 + data.situps * 4 + data.curls * 5 + data.jumpingjacks * 3 +
     data.burpees * 6 + data.lunges * 4 + data.running * 6 + Math.floor(data.plank / 10) * 3 +
     data.chinups * 10 + data.rows * 6 + Math.floor(data.towel / 10) * 3 + data.wrists * 2 +
     data.crunches * 3 + data.legraises * 4 + Math.floor(data.flutter / 10) * 3
@@ -266,6 +267,7 @@ function logXP() {
     pushups: +document.getElementById("pushups").value || 0,
     squats: +document.getElementById("squats").value || 0,
     situps: +document.getElementById("situps").value || 0,
+    curls: +document.getElementById("curls").value || 0,
     jumpingjacks: +document.getElementById("jumpingjacks").value || 0,
     burpees: +document.getElementById("burpees").value || 0,
     lunges: +document.getElementById("lunges").value || 0,
