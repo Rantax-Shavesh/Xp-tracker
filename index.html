@@ -92,33 +92,32 @@
   <p><strong>XP to next level:</strong> <span id="xpToNext">100</span></p>
   <p><strong>Daily XP:</strong> <span id="dailyXP">0</span></p>
   <p><strong>Weekly XP:</strong> <span id="weeklyXP">0</span></p>
-
   <div class="xp-bar-container">
     <div class="xp-bar" id="xpBar"></div>
-  
-  <div class="floating-box">
-  <h2>Log Exercise</h2>
-  <input type="text" id="username" placeholder="Your Name (for leaderboard)" />
+  </div>
+    <div class="floating-box">
+    <h2>Log Exercise</h2>
+    <input type="text" id="username" placeholder="Your Name (for leaderboard)" />
 
-  <div><label>Push-ups <span class="tag">Chest/Triceps</span></label><input type="number" id="pushups" max="100" placeholder="Max: 100" /></div>
-  <div><label>Squats <span class="tag">Legs</span></label><input type="number" id="squats" max="100" placeholder="Max: 100" /></div>
-  <div><label>Sit-ups <span class="tag">Abs</span></label><input type="number" id="situps" max="100" placeholder="Max: 100" /></div>
-  <div><label>Jumping Jacks <span class="tag">Cardio</span></label><input type="number" id="jumpingjacks" max="200" placeholder="Max: 200" /></div>
-  <div><label>Burpees <span class="tag">Full Body</span></label><input type="number" id="burpees" max="100" placeholder="Max: 100" /></div>
-  <div><label>Lunges <span class="tag">Legs</span></label><input type="number" id="lunges" max="100" placeholder="Max: 100" /></div>
-  <div><label>Running (min) <span class="tag">Cardio</span></label><input type="number" id="running" max="60" placeholder="Max: 60 min" /></div>
-  <div><label>Plank (sec) <span class="tag">Core</span></label><input type="number" id="plank" max="300" placeholder="Max: 300 sec" /></div>
-  <div><label>Chin-ups <span class="tag">Biceps</span></label><input type="number" id="chinups" max="50" placeholder="Max: 50" /></div>
-  <div><label>Rows <span class="tag">Back/Biceps</span></label><input type="number" id="rows" max="50" placeholder="Max: 50" /></div>
-  <div><label>Towel Hangs (sec) <span class="tag">Forearms</span></label><input type="number" id="towel" max="180" placeholder="Max: 180 sec" /></div>
-  <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" max="100" placeholder="Max: 100" /></div>
-  <div><label>Crunches <span class="tag">Abs</span></label><input type="number" id="crunches" max="100" placeholder="Max: 100" /></div>
-  <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" max="100" placeholder="Max: 100" /></div>
-  <div><label>Flutter Kicks (sec) <span class="tag">Abs</span></label><input type="number" id="flutter" max="180" placeholder="Max: 180 sec" /></div>
-  <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" max="100" placeholder="Max: 100" /></div>
+    <div><label>Push-ups <span class="tag">Chest/Triceps</span></label><input type="number" id="pushups" max="100" placeholder="Max: 100" /></div>
+    <div><label>Squats <span class="tag">Legs</span></label><input type="number" id="squats" max="100" placeholder="Max: 100" /></div>
+    <div><label>Sit-ups <span class="tag">Abs</span></label><input type="number" id="situps" max="100" placeholder="Max: 100" /></div>
+    <div><label>Jumping Jacks <span class="tag">Cardio</span></label><input type="number" id="jumpingjacks" max="200" placeholder="Max: 200" /></div>
+    <div><label>Burpees <span class="tag">Full Body</span></label><input type="number" id="burpees" max="100" placeholder="Max: 100" /></div>
+    <div><label>Lunges <span class="tag">Legs</span></label><input type="number" id="lunges" max="100" placeholder="Max: 100" /></div>
+    <div><label>Running (min) <span class="tag">Cardio</span></label><input type="number" id="running" max="60" placeholder="Max: 60 min" /></div>
+    <div><label>Plank (sec) <span class="tag">Core</span></label><input type="number" id="plank" max="300" placeholder="Max: 300 sec" /></div>
+    <div><label>Chin-ups <span class="tag">Biceps</span></label><input type="number" id="chinups" max="50" placeholder="Max: 50" /></div>
+    <div><label>Rows <span class="tag">Back/Biceps</span></label><input type="number" id="rows" max="50" placeholder="Max: 50" /></div>
+    <div><label>Towel Hangs (sec) <span class="tag">Forearms</span></label><input type="number" id="towel" max="180" placeholder="Max: 180 sec" /></div>
+    <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" max="100" placeholder="Max: 100" /></div>
+    <div><label>Crunches <span class="tag">Abs</span></label><input type="number" id="crunches" max="100" placeholder="Max: 100" /></div>
+    <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" max="100" placeholder="Max: 100" /></div>
+    <div><label>Flutter Kicks (sec) <span class="tag">Abs</span></label><input type="number" id="flutter" max="180" placeholder="Max: 180 sec" /></div>
+    <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" max="100" placeholder="Max: 100" /></div>
 
-  <button onclick="logXP()">Add XP</button>
-</div>
+    <button onclick="logXP()">Add XP</button>
+  </div>
 
   <div class="floating-box" id="legacySection" style="display:none;">
     <h2>Legacy XP Mode</h2>
@@ -290,23 +289,24 @@
       flutter: +document.getElementById("flutter").value || 0,
       curls: +document.getElementById("curls").value || 0
     };
-    // Enforce max limits for each input to prevent cheating
-data.pushups = Math.min(data.pushups, 100);
-data.squats = Math.min(data.squats, 100);
-data.situps = Math.min(data.situps, 100);
-data.jumpingjacks = Math.min(data.jumpingjacks, 200);
-data.burpees = Math.min(data.burpees, 100);
-data.lunges = Math.min(data.lunges, 100);
-data.running = Math.min(data.running, 60);
-data.plank = Math.min(data.plank, 300);
-data.chinups = Math.min(data.chinups, 50);
-data.rows = Math.min(data.rows, 50);
-data.towel = Math.min(data.towel, 180);
-data.wrists = Math.min(data.wrists, 100);
-data.crunches = Math.min(data.crunches, 100);
-data.legraises = Math.min(data.legraises, 100);
-data.flutter = Math.min(data.flutter, 180);
-data.curls = Math.min(data.curls, 100);
+
+    // Anti-cheat input limits
+    data.pushups = Math.min(data.pushups, 100);
+    data.squats = Math.min(data.squats, 100);
+    data.situps = Math.min(data.situps, 100);
+    data.jumpingjacks = Math.min(data.jumpingjacks, 200);
+    data.burpees = Math.min(data.burpees, 100);
+    data.lunges = Math.min(data.lunges, 100);
+    data.running = Math.min(data.running, 60);
+    data.plank = Math.min(data.plank, 300);
+    data.chinups = Math.min(data.chinups, 50);
+    data.rows = Math.min(data.rows, 50);
+    data.towel = Math.min(data.towel, 180);
+    data.wrists = Math.min(data.wrists, 100);
+    data.crunches = Math.min(data.crunches, 100);
+    data.legraises = Math.min(data.legraises, 100);
+    data.flutter = Math.min(data.flutter, 180);
+    data.curls = Math.min(data.curls, 100);
 
     const gainedXP = getXPFromExercise(data, true);
 
@@ -324,16 +324,14 @@ data.curls = Math.min(data.curls, 100);
     localStorage.setItem("inLegacyMode", inLegacyMode);
     localStorage.setItem("lastUsername", username);
 
-    // Send XP to Firestore cloud leaderboard
     await logXPToFirestore(username, inLegacyMode ? legacyXP : xp);
-
     updateUI();
   }
 
   updateUI();
 </script>
 
-<!-- Firebase Integration -->
+<!-- Firebase Leaderboard -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
   import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
@@ -383,8 +381,7 @@ data.curls = Math.min(data.curls, 100);
 
   window.logXPToFirestore = logXPToFirestore;
   window.updateLeaderboard = updateLeaderboard;
-  updateLeaderboard(); // <- call it on page load
+  updateLeaderboard();
 </script>
-
 </body>
 </html>
