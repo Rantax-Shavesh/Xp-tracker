@@ -327,11 +327,13 @@
   }
 </script>
   <script type="module">
+  // Firebase imports
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
   import {
     getFirestore, collection, getDocs, setDoc, doc, getDoc
   } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
     authDomain: "solo-levelling-35372.firebaseapp.com",
@@ -345,6 +347,57 @@
   const db = getFirestore(app);
   window.db = db;
 
+  // Fetch leaderboard users from Firestore
+  async function fetchLeaderboardFromFirestore() {
+    try {
+      const querySnapshot = await getDocs(collection(db, "leaderboard"));
+      let users = [];
+      querySnapshot.forEach((doc) => {
+        users.push(doc.data());
+      });
+      return users;
+    } catch (err) {
+      const debug = document.getElementById("debugOutput");
+      debug.innerText = "Firestore fetch error:\n" + err.message;
+      return [];
+    }
+  }
+
+  // Update leaderboard table
+  async function updateLeaderboard() {
+    const debug = document.getElementById("debugOutput");
+    debug.innerText = "Fetching leaderboard...";
+
+    try {
+      const users = await fetchLeaderboardFromFirestore();
+
+      if (!users || users.length === 0) {
+        debug.innerText = "No users found.";
+        return;
+      }
+
+      debug.innerText = "Fetched users:\n" + JSON.stringify(users, null, 2);
+
+      users.sort((a, b) => b.xp - a.xp);
+      const tbody = document.getElementById("leaderboard");
+      tbody.innerHTML = "";
+
+      users.forEach((player, index) => {
+        const level = xpToLevel(player.xp);
+        const title = getTitle(level);
+        const row = document.createElement("tr");
+        if (index === 0) row.style.color = "#ffd700";
+        else if (index === 1) row.style.color = "#c0c0c0";
+        else if (index === 2) row.style.color = "#cd7f32";
+        row.innerHTML = `<td>#${index + 1}</td><td>${player.name}</td><td>${player.xp}</td><td>${level}</td><td>${title}</td>`;
+        tbody.appendChild(row);
+      });
+    } catch (err) {
+      debug.innerText = "Error building leaderboard:\n" + err.message;
+    }
+  }
+
+  // Log XP function (already defined in earlier parts)
   async function logXP() {
     const username = document.getElementById("username").value.trim() || "Anonymous";
     document.getElementById("currentUserDisplay").innerText = username;
@@ -407,51 +460,16 @@
     updateUI();
   }
 
-  async function fetchLeaderboardFromFirestore() {
-  const querySnapshot = await getDocs(collection(db, "leaderboard"));
-  let users = [];
-  querySnapshot.forEach((doc) => {
-    users.push(doc.data());
-  });
-  return users;
-}
-    
-  async function updateLeaderboard() {
-  const debug = document.getElementById("debugOutput");
-  debug.innerText = "Fetching leaderboard...";
+  // Expose functions to the global scope
+  window.db = db;
+  window.logXP = logXP;
+  window.updateLeaderboard = updateLeaderboard;
+  window.fetchLeaderboardFromFirestore = fetchLeaderboardFromFirestore;
 
-  try {
-    const users = await fetchLeaderboardFromFirestore();
-    debug.innerText = "Fetched users:\n" + JSON.stringify(users, null, 2);
-
-    users.sort((a, b) => b.xp - a.xp);
-    const tbody = document.getElementById("leaderboard");
-    tbody.innerHTML = "";
-
-    users.forEach((player, index) => {
-      const level = xpToLevel(player.xp);
-      const title = getTitle(level);
-      const row = document.createElement("tr");
-      if (index === 0) row.style.color = "#ffd700";
-      else if (index === 1) row.style.color = "#c0c0c0";
-      else if (index === 2) row.style.color = "#cd7f32";
-      row.innerHTML = `<td>#${index + 1}</td><td>${player.name}</td><td>${player.xp}</td><td>${level}</td><td>${title}</td>`;
-      tbody.appendChild(row);
-    });
-  } catch (err) {
-    debug.innerText = "Error fetching leaderboard:\n" + err.message;
-  }
-}
-    window.logXP = logXP;
-
-  // Auto-update leaderboard and stats on page load
+  // Refresh UI when page loads
   window.addEventListener("DOMContentLoaded", () => {
     updateUI();
   });
 </script>
-  <div id="debugBox" style="white-space:pre-wrap; background:#111; color:#4da6ff; padding:10px; margin-top:20px; border:1px solid #4da6ff;">
-  <strong>Debug Info:</strong>
-  <div id="debugOutput">Waiting for data...</div>
-</div>
 </body>
 </html>
