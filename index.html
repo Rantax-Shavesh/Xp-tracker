@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shadow XP Tracker</title>
-  <p><strong>Current User:</strong> <span id="currentUserDisplay">Not set</span></p>
   <style>
     body {
       background-color: #0b0c1a;
@@ -15,6 +14,11 @@
     h1 {
       color: #4da6ff;
       text-shadow: 0 0 10px #4da6ff;
+    }
+    h2#welcome {
+      font-size: 28px;
+      color: #4da6ff;
+      margin-bottom: 10px;
     }
     .title-badge {
       display: inline-block;
@@ -86,6 +90,7 @@
 </head>
 <body>
   <h1>Shadow XP Tracker</h1>
+  <h2 id="welcome">Welcome, <span id="currentUserDisplay">Anonymous</span></h2>
   <div id="titleDisplay" class="title-badge">Novice Shadow</div>
   <p><strong>Next Rank:</strong> <span id="nextRankName">—</span> (in <span id="levelsToNext">0</span> levels)</p>
   <p><strong>Level:</strong> <span id="level">1</span></p>
@@ -159,7 +164,10 @@
   ];
 
   const last = localStorage.getItem("lastUsername");
-  if (last) document.getElementById("username").value = last;
+  if (last) {
+    document.getElementById("username").value = last;
+    document.getElementById("currentUserDisplay").innerText = last;
+  }
 
   function getXPFromExercise(data, showBreakdown = false) {
     const breakdown = {
@@ -272,6 +280,8 @@
 <script>
   async function logXP() {
     const username = document.getElementById("username").value.trim() || "Anonymous";
+    document.getElementById("currentUserDisplay").innerText = username;
+
     const data = {
       pushups: +document.getElementById("pushups").value || 0,
       squats: +document.getElementById("squats").value || 0,
@@ -291,23 +301,19 @@
       curls: +document.getElementById("curls").value || 0
     };
 
-    // Anti-cheat input limits
-    data.pushups = Math.min(data.pushups, 100);
-    data.squats = Math.min(data.squats, 100);
-    data.situps = Math.min(data.situps, 100);
-    data.jumpingjacks = Math.min(data.jumpingjacks, 200);
-    data.burpees = Math.min(data.burpees, 100);
-    data.lunges = Math.min(data.lunges, 100);
-    data.running = Math.min(data.running, 60);
-    data.plank = Math.min(data.plank, 300);
-    data.chinups = Math.min(data.chinups, 50);
-    data.rows = Math.min(data.rows, 50);
-    data.towel = Math.min(data.towel, 180);
-    data.wrists = Math.min(data.wrists, 100);
-    data.crunches = Math.min(data.crunches, 100);
-    data.legraises = Math.min(data.legraises, 100);
-    data.flutter = Math.min(data.flutter, 180);
-    data.curls = Math.min(data.curls, 100);
+    const limits = {
+      pushups: 100, squats: 100, situps: 100, jumpingjacks: 200,
+      burpees: 100, lunges: 100, running: 60, plank: 300,
+      chinups: 50, rows: 50, towel: 180, wrists: 100,
+      crunches: 100, legraises: 100, flutter: 180, curls: 100
+    };
+
+    for (let key in data) {
+      if (data[key] > limits[key]) {
+        alert(`${key} exceeds max limit. It has been reduced to ${limits[key]}.`);
+        data[key] = limits[key];
+      }
+    }
 
     const gainedXP = getXPFromExercise(data, true);
 
@@ -329,10 +335,13 @@
     updateUI();
   }
 
-  updateUI();
+  const savedUser = localStorage.getItem("lastUsername");
+  if (savedUser) {
+    document.getElementById("username").value = savedUser;
+    document.getElementById("currentUserDisplay").innerText = savedUser;
+  }
 </script>
 
-<!-- Firebase Leaderboard -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
   import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
@@ -341,7 +350,7 @@
     apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
     authDomain: "solo-levelling-35372.firebaseapp.com",
     projectId: "solo-levelling-35372",
-    storageBucket: "solo-levelling-35372.firebasestorage.app",
+    storageBucket: "solo-levelling-35372.appspot.com",
     messagingSenderId: "177114822487",
     appId: "1:177114822487:web:6e3cfee627c4eb0d637012"
   };
@@ -384,5 +393,6 @@
   window.updateLeaderboard = updateLeaderboard;
   updateLeaderboard();
 </script>
+
 </body>
 </html>
