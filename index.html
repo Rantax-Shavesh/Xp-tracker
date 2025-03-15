@@ -172,6 +172,15 @@
       <tbody id="leaderboard"></tbody>
     </table>
   </div>
+  <label style="color:#4da6ff; font-size: 14px;">
+  <input type="checkbox" id="debugToggle" onchange="toggleDebug()" />
+  Enable Debug Mode
+</label>
+
+<div id="debugBox" style="white-space:pre-wrap; background:#111; color:#4da6ff; padding:10px; margin-top:10px; border:1px solid #4da6ff; display:none;">
+  <strong>Debug Info:</strong>
+  <div id="debugOutput">Debug mode active...</div>
+</div>
   <script>
   let xp = +localStorage.getItem("xp") || 0;
   let legacyXP = +localStorage.getItem("legacyXP") || 0;
@@ -365,28 +374,50 @@
 
   // Update leaderboard table
   async function updateLeaderboard() {
+  const debug = document.getElementById("debugOutput");
+  if (debug) debug.innerText = "Fetching leaderboard...";
+
   try {
     const users = await fetchLeaderboardFromFirestore();
-    if (!users || users.length === 0) return;
+
+    if (!users || users.length === 0) {
+      if (debug) debug.innerText += "\nNo users found.";
+      return;
+    }
+
+    if (debug) debug.innerText += "\nFetched users:\n" + JSON.stringify(users, null, 2);
 
     users.sort((a, b) => b.xp - a.xp);
     const tbody = document.getElementById("leaderboard");
-    if (!tbody) return;
+    if (!tbody) {
+      if (debug) debug.innerText += "\nTable body not found.";
+      return;
+    }
 
+    if (debug) debug.innerText += "\nTargeting table body: FOUND";
     tbody.innerHTML = "";
 
     users.forEach((player, index) => {
       const level = xpToLevel(player.xp);
       const title = getTitle(level);
       const row = document.createElement("tr");
+
       if (index === 0) row.style.color = "#ffd700";
       else if (index === 1) row.style.color = "#c0c0c0";
       else if (index === 2) row.style.color = "#cd7f32";
-      row.innerHTML = `<td>#${index + 1}</td><td>${player.name}</td><td>${player.xp}</td><td>${level}</td><td>${title}</td>`;
+
+      row.innerHTML = `
+        <td>#${index + 1}</td>
+        <td>${player.name}</td>
+        <td>${player.xp}</td>
+        <td>${level}</td>
+        <td>${title}</td>
+      `;
       tbody.appendChild(row);
     });
   } catch (err) {
-    console.error("Error updating leaderboard:", err.message);
+    if (debug) debug.innerText = "Error building leaderboard:\n" + err.message;
+    console.error("Leaderboard Error:", err);
   }
 }
   // Log XP function (already defined in earlier parts)
@@ -451,6 +482,11 @@
 
     updateUI();
   }
+    function toggleDebug() {
+  const debug = document.getElementById("debugBox");
+  const enabled = document.getElementById("debugToggle").checked;
+  debug.style.display = enabled ? "block" : "none";
+}
 
   // Expose functions to the global scope
   window.db = db;
