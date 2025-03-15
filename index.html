@@ -365,39 +365,30 @@
 
   // Update leaderboard table
   async function updateLeaderboard() {
-    const debug = document.getElementById("debugOutput");
-    debug.innerText = "Fetching leaderboard...";
+  try {
+    const users = await fetchLeaderboardFromFirestore();
+    if (!users || users.length === 0) return;
 
-    try {
-      const users = await fetchLeaderboardFromFirestore();
+    users.sort((a, b) => b.xp - a.xp);
+    const tbody = document.getElementById("leaderboard");
+    if (!tbody) return;
 
-      if (!users || users.length === 0) {
-        debug.innerText = "No users found.";
-        return;
-      }
+    tbody.innerHTML = "";
 
-      debug.innerText = "Fetched users:\n" + JSON.stringify(users, null, 2);
-
-      users.sort((a, b) => b.xp - a.xp);
-      const tbody = document.getElementById("leaderboard");
-      debug.innerText += "\nTargeting table body: " + (tbody ? "FOUND" : "NOT FOUND");
-      tbody.innerHTML = "";
-
-      users.forEach((player, index) => {
-        const level = xpToLevel(player.xp);
-        const title = getTitle(level);
-        const row = document.createElement("tr");
-        if (index === 0) row.style.color = "#ffd700";
-        else if (index === 1) row.style.color = "#c0c0c0";
-        else if (index === 2) row.style.color = "#cd7f32";
-        row.innerHTML = `<td>#${index + 1}</td><td>${player.name}</td><td>${player.xp}</td><td>${level}</td><td>${title}</td>`;
-        tbody.appendChild(row);
-      });
-    } catch (err) {
-      debug.innerText = "Error building leaderboard:\n" + err.message;
-    }
+    users.forEach((player, index) => {
+      const level = xpToLevel(player.xp);
+      const title = getTitle(level);
+      const row = document.createElement("tr");
+      if (index === 0) row.style.color = "#ffd700";
+      else if (index === 1) row.style.color = "#c0c0c0";
+      else if (index === 2) row.style.color = "#cd7f32";
+      row.innerHTML = `<td>#${index + 1}</td><td>${player.name}</td><td>${player.xp}</td><td>${level}</td><td>${title}</td>`;
+      tbody.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error updating leaderboard:", err.message);
   }
-
+}
   // Log XP function (already defined in earlier parts)
   async function logXP() {
     const username = document.getElementById("username").value.trim() || "Anonymous";
