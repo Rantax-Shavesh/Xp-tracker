@@ -10,6 +10,7 @@
       color: #b3cfff;
       font-family: 'Segoe UI', sans-serif;
       padding: 20px;
+      overflow-x: hidden;
     }
     h1 {
       color: #4da6ff;
@@ -28,6 +29,11 @@
       border-radius: 20px;
       font-weight: bold;
       margin-bottom: 10px;
+      transition: all 0.4s ease;
+      opacity: 1;
+    }
+    .title-badge.change {
+      opacity: 0;
     }
     .xp-bar-container {
       background: #333;
@@ -43,6 +49,15 @@
       width: 0%;
       transition: width 0.5s ease;
     }
+    .xp-bar.level-up {
+      animation: pulse 1s ease-in-out 2;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 5px #4da6ff; }
+      50% { box-shadow: 0 0 20px #4da6ff; }
+      100% { box-shadow: 0 0 5px #4da6ff; }
+    }
+
     input, button {
       padding: 10px;
       margin: 5px 0;
@@ -238,7 +253,11 @@
   }
 
   function updateUI() {
+    const bar = document.getElementById("xpBar");
+    const titleEl = document.getElementById("titleDisplay");
+
     if (!inLegacyMode) {
+      const oldLevel = level;
       level = xpToLevel(xp);
       document.getElementById("level").innerText = level;
       document.getElementById("totalXP").innerText = xp;
@@ -248,8 +267,21 @@
       for (let i = 1; i < level; i++) xpThisLevel -= getNextXPNeeded(i);
 
       document.getElementById("xpToNext").innerText = req - xpThisLevel;
-      document.getElementById("xpBar").style.width = `${(xpThisLevel / req) * 100}%`;
-      document.getElementById("titleDisplay").innerText = getTitle(level);
+      bar.style.width = `${(xpThisLevel / req) * 100}%`;
+
+      // Animate XP bar glow
+      if (oldLevel !== level) {
+        bar.classList.remove("level-up");
+        void bar.offsetWidth;
+        bar.classList.add("level-up");
+      }
+
+      // Animate title change
+      titleEl.classList.add("change");
+      setTimeout(() => {
+        titleEl.innerText = getTitle(level);
+        titleEl.classList.remove("change");
+      }, 250);
 
       const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
       for (let i = 0; i < thresholds.length; i++) {
@@ -276,8 +308,46 @@
 
     updateLeaderboard();
   }
+
+  function showXPAnimation(amount) {
+    const el = document.createElement("div");
+    el.innerText = `+${amount} XP`;
+    el.style.position = "fixed";
+    el.style.left = "50%";
+    el.style.top = "50%";
+    el.style.transform = "translate(-50%, -50%)";
+    el.style.color = "#4da6ff";
+    el.style.fontSize = "28px";
+    el.style.fontWeight = "bold";
+    el.style.opacity = "1";
+    el.style.transition = "all 1.2s ease-out";
+    el.style.zIndex = "9999";
+    document.body.appendChild(el);
+    setTimeout(() => {
+      el.style.top = "20%";
+      el.style.opacity = "0";
+    }, 100);
+    setTimeout(() => {
+      document.body.removeChild(el);
+    }, 1300);
+  }
 </script>
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
+    authDomain: "solo-levelling-35372.firebaseapp.com",
+    projectId: "solo-levelling-35372",
+    storageBucket: "solo-levelling-35372.appspot.com",
+    messagingSenderId: "177114822487",
+    appId: "1:177114822487:web:6e3cfee627c4eb0d637012"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
   async function logXP() {
     const username = document.getElementById("username").value.trim() || "Anonymous";
     document.getElementById("currentUserDisplay").innerText = username;
@@ -316,6 +386,7 @@
     }
 
     const gainedXP = getXPFromExercise(data, true);
+    showXPAnimation(gainedXP);
 
     if (inLegacyMode) {
       legacyXP += gainedXP;
@@ -334,29 +405,6 @@
     await logXPToFirestore(username, inLegacyMode ? legacyXP : xp);
     updateUI();
   }
-
-  const savedUser = localStorage.getItem("lastUsername");
-  if (savedUser) {
-    document.getElementById("username").value = savedUser;
-    document.getElementById("currentUserDisplay").innerText = savedUser;
-  }
-</script>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
-    authDomain: "solo-levelling-35372.firebaseapp.com",
-    projectId: "solo-levelling-35372",
-    storageBucket: "solo-levelling-35372.appspot.com",
-    messagingSenderId: "177114822487",
-    appId: "1:177114822487:web:6e3cfee627c4eb0d637012"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
 
   async function logXPToFirestore(username, xpAmount) {
     const userRef = doc(db, "leaderboard", username);
