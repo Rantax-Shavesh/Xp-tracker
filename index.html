@@ -408,14 +408,18 @@
   }
 
   async function fetchLeaderboardFromFirestore() {
-    const querySnapshot = await getDocs(collection(db, "leaderboard"));
-    let users = [];
-    querySnapshot.forEach((doc) => users.push(doc.data()));
-    return users;
-  }
-
+  const querySnapshot = await getDocs(collection(db, "leaderboard"));
+  let users = [];
+  querySnapshot.forEach((doc) => {
+    users.push(doc.data());
+  });
+  return users;
+}
+    
   async function updateLeaderboard() {
+    console.log("Fetching leaderboard...");
     const users = await fetchLeaderboardFromFirestore();
+    console.log("Fetched users:", users);
     users.sort((a, b) => b.xp - a.xp);
     const tbody = document.getElementById("leaderboard");
     tbody.innerHTML = "";
