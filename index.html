@@ -6,307 +6,462 @@
   <title>Shadow XP Tracker</title>
   <style>
     body {
-      background-color: #0a0a0a;
-      color: white;
+      background-color: #0b0c1a;
+      color: #b3cfff;
       font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-      text-align: center;
+      padding: 20px;
     }
 
     h1 {
-      color: #00bfff;
-      margin-top: 20px;
+      color: #4da6ff;
+      text-shadow: 0 0 10px #4da6ff;
     }
 
-    .xp-box, .input-section, .leaderboard, .popup, .title-section, .avatar-section, .stats-section {
-      margin: 20px auto;
-      padding: 10px;
-      max-width: 600px;
-      background-color: #111;
+    h2#welcome {
+      font-size: 28px;
+      color: #4da6ff;
+      margin-bottom: 10px;
+    }
+
+    .title-badge {
+      display: inline-block;
+      background: #4da6ff;
+      color: #000;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .xp-bar-container {
+      background: #333;
       border-radius: 10px;
-      box-shadow: 0 0 15px #00bfff33;
+      overflow: hidden;
+      width: 100%;
+      height: 30px;
+      margin: 10px 0;
     }
 
-    input[type="number"], input[type="text"] {
-      padding: 5px;
-      margin: 5px;
-      width: 100px;
-      background-color: #222;
-      color: white;
-      border: 1px solid #00bfff;
+    .xp-bar {
+      height: 100%;
+      background: linear-gradient(to right, #4da6ff, #004080);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 5px 0;
       border-radius: 5px;
+      border: none;
+      font-size: 16px;
+      width: 100%;
     }
 
     button {
-      padding: 8px 16px;
-      margin: 5px;
-      background-color: #00bfff;
-      border: none;
-      color: white;
+      background-color: #4da6ff;
+      color: #000;
       font-weight: bold;
-      border-radius: 5px;
       cursor: pointer;
     }
 
-    .popup {
-      background-color: #222;
-      color: #0f0;
-      border: 1px solid #0f0;
+    .floating-box {
+      border: 1px solid #4da6ff;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.03);
+      box-shadow: 0 0 10px #4da6ff;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 10px;
     }
 
-    .leaderboard-entry {
-      display: flex;
-      justify-content: space-between;
+    th, td {
       padding: 10px;
-      border-bottom: 1px solid #00bfff55;
-      background-color: #1a1a1a;
-      border-radius: 5px;
-      margin: 5px;
+      text-align: left;
+      border-bottom: 1px solid #4da6ff44;
     }
 
-    .side-menu {
+    th {
+      color: #4da6ff;
+    }
+
+    .tag {
+      background-color: #4da6ff;
+      color: #000;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-left: 8px;
+    }
+
+    #xp-popup {
       position: fixed;
-      right: 10px;
-      top: 100px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .side-menu button {
-      width: 120px;
-    }
-
-    .currency {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background-color: #111;
-      padding: 10px;
-      border: 2px solid #00bfff;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #4da6ff;
+      padding: 20px;
+      border: 2px solid #4da6ff;
       border-radius: 10px;
+      text-align: center;
+      font-size: 22px;
       font-weight: bold;
-    }
-
-    select {
-      background-color: #111;
-      color: white;
-      border: 1px solid #00bfff;
-      padding: 5px;
-    }
-
-    .avatar-list span {
-      cursor: pointer;
-      font-size: 24px;
-      margin: 0 5px;
-    }
-
-    .highlighted {
-      border: 2px solid #0f0;
-      padding: 2px;
-      border-radius: 5px;
+      display: none;
+      z-index: 9999;
+      box-shadow: 0 0 20px #4da6ff99;
     }
   </style>
 </head>
 <body>
   <h1>Shadow XP Tracker</h1>
-
-  <div class="currency">Shadow Coins: <span id="shadowCoins">0</span></div>
-
-  <div class="input-section">
-    <label>Username:</label>
-    <input type="text" id="username" placeholder="Enter name" />
-    
-    <div class="avatar-section">
-      <p><strong>Choose Your Avatar:</strong></p>
-      <div class="avatar-list" id="avatarList">
-        <span>🧙</span><span>🧑‍🎓</span><span>🧝‍♂️</span><span>🧟</span><span>⚔️</span><span>👑</span>
-      </div>
-    </div>
-
-    <h2 id="displayUsername"></h2>
-    <p id="title" class="title-section">Novice Shadow</p>
-
-    <label>Push-ups:</label>
-    <input type="number" id="pushups" max="100"/>
-    <label>Squats:</label>
-    <input type="number" id="squats" max="100"/>
-    <label>Sit-ups:</label>
-    <input type="number" id="situps" max="100"/>
-    <label>Burpees:</label>
-    <input type="number" id="burpees" max="100"/>
-
-    <div>
-      <button onclick="calculateXP()">Calculate XP</button>
-      <button onclick="logExercise()">Log Exercise</button>
-    </div>
-
-    <div class="popup" id="xpPopup" style="display:none;"></div>
+  <h2 id="welcome">Welcome, <span id="currentUserDisplay">Anonymous</span></h2>
+  <div id="titleDisplay" class="title-badge">Novice Shadow</div>
+  <p><strong>Next Rank:</strong> <span id="nextRankName">—</span> (in <span id="levelsToNext">0</span> levels)</p>
+  <p><strong>Level:</strong> <span id="level">1</span></p>
+  <p><strong>Total XP:</strong> <span id="totalXP">0</span></p>
+  <p><strong>XP to next level:</strong> <span id="xpToNext">100</span></p>
+  <p><strong>Daily XP:</strong> <span id="dailyXP">0</span></p>
+  <p><strong>Weekly XP:</strong> <span id="weeklyXP">0</span></p>
+  <div class="xp-bar-container">
+    <div class="xp-bar" id="xpBar"></div>
   </div>
 
-  <div class="side-menu">
-    <button onclick="openShop()">Shop</button>
-    <button onclick="viewProgress()">View Progress</button>
-    <button onclick="showAchievements()">Achievements</button>
-    <button onclick="showQuests()">Daily Quests</button>
+  <div id="xp-popup">+100 XP Gained!</div>
+    <div class="floating-box">
+    <h2>Log Exercise</h2>
+    <input type="text" id="username" placeholder="Your Name (for leaderboard)" />
+
+    <div><label>Push-ups <span class="tag">Chest/Triceps</span></label><input type="number" id="pushups" max="100" placeholder="Max: 100" /></div>
+    <div><label>Squats <span class="tag">Legs</span></label><input type="number" id="squats" max="100" placeholder="Max: 100" /></div>
+    <div><label>Sit-ups <span class="tag">Abs</span></label><input type="number" id="situps" max="100" placeholder="Max: 100" /></div>
+    <div><label>Jumping Jacks <span class="tag">Cardio</span></label><input type="number" id="jumpingjacks" max="200" placeholder="Max: 200" /></div>
+    <div><label>Burpees <span class="tag">Full Body</span></label><input type="number" id="burpees" max="100" placeholder="Max: 100" /></div>
+    <div><label>Lunges <span class="tag">Legs</span></label><input type="number" id="lunges" max="100" placeholder="Max: 100" /></div>
+    <div><label>Running (min) <span class="tag">Cardio</span></label><input type="number" id="running" max="60" placeholder="Max: 60 min" /></div>
+    <div><label>Plank (sec) <span class="tag">Core</span></label><input type="number" id="plank" max="300" placeholder="Max: 300 sec" /></div>
+    <div><label>Chin-ups <span class="tag">Biceps</span></label><input type="number" id="chinups" max="50" placeholder="Max: 50" /></div>
+    <div><label>Rows <span class="tag">Back/Biceps</span></label><input type="number" id="rows" max="50" placeholder="Max: 50" /></div>
+    <div><label>Towel Hangs (sec) <span class="tag">Forearms</span></label><input type="number" id="towel" max="180" placeholder="Max: 180 sec" /></div>
+    <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" max="100" placeholder="Max: 100" /></div>
+    <div><label>Crunches <span class="tag">Abs</span></label><input type="number" id="crunches" max="100" placeholder="Max: 100" /></div>
+    <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" max="100" placeholder="Max: 100" /></div>
+    <div><label>Flutter Kicks (sec) <span class="tag">Abs</span></label><input type="number" id="flutter" max="180" placeholder="Max: 180 sec" /></div>
+    <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" max="100" placeholder="Max: 100" /></div>
+
+    <button onclick="logXP()">Add XP</button>
   </div>
 
-  <div class="leaderboard">
-    <h3>Leaderboard</h3>
-    <select onchange="sortLeaderboard(this.value)">
-      <option value="xp">Sort by XP</option>
-      <option value="level">Sort by Level</option>
-    </select>
-    <div id="leaderboardList"></div>
-    <button onclick="prevPage()">Previous</button>
-    <button onclick="nextPage()">Next</button>
+  <div class="floating-box" id="legacySection" style="display:none;">
+    <h2>Legacy XP Mode</h2>
+    <p><strong>Legacy XP:</strong> <span id="legacyXP">0</span></p>
+    <p><strong>Legacy Title:</strong> <span id="legacyTitle">Secrecy</span></p>
   </div>
 
-  <!-- Placeholder for Shop, Progress, Achievements, Quests, etc. -->
-  <div id="dynamicSection"></div>
-
+  <div class="floating-box">
+    <h2>Leaderboard</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Name</th><th>XP</th><th>Level</th><th>Title</th></tr>
+      </thead>
+      <tbody id="leaderboard"></tbody>
+    </table>
+  </div>
   <script>
-    let xp = 0, level = 1, legacyXP = 0, shadowCoins = 0;
-    const leaderboard = [];
-    let selectedAvatar = "";
-    let currentPage = 0;
-    const pageSize = 3;
+  let xp = +localStorage.getItem("xp") || 0;
+  let legacyXP = +localStorage.getItem("legacyXP") || 0;
+  let inLegacyMode = localStorage.getItem("inLegacyMode") === "true";
+  let level = 1;
+  let today = new Date().toLocaleDateString();
+  let xpHistory = JSON.parse(localStorage.getItem("xpHistory") || "{}");
 
-    const titles = ["Novice Shadow", "Skilled Hunter", "Elite Warrior", "Legendary Knight", "Monarch"];
-    const xpNeeded = level => 100 + (level - 1) * 50;
+  const levelTitles = [
+    "Novice Shadow", "E-Rank Hunter", "D-Rank Hunter", "C-Rank Hunter",
+    "B-Rank Hunter", "A-Rank Hunter", "S-Rank Hunter", "Shadow Soldier",
+    "Elite Shadow", "Commander of Shadows", "Monarch in Training",
+    "Shadow Monarch", "Awakened Monarch", "Secrecy"
+  ];
 
-    document.querySelectorAll(".avatar-list span").forEach(el => {
-      el.onclick = () => {
-        document.querySelectorAll(".avatar-list span").forEach(s => s.classList.remove("highlighted"));
-        el.classList.add("highlighted");
-        selectedAvatar = el.textContent;
-      };
+  const legacyTitles = [
+    [0, "Secrecy"], [100, "Shadowborn"], [250, "Void Initiate"],
+    [500, "Abyss Walker"], [750, "Eclipse Soul"], [1000, "Shadow Ascendant"],
+    [1500, "Monarch’s Echo"], [2000, "Legacy Wielder"],
+    [3000, "Dimensional Phantom"], [5000, "Transcendent One"],
+    [7500, "Timebreaker"], [10000, "God of the Grind"]
+  ];
+
+  const last = localStorage.getItem("lastUsername");
+  if (last) {
+    document.getElementById("username").value = last;
+    document.getElementById("currentUserDisplay").innerText = last;
+  }
+
+  function getXPFromExercise(data, showBreakdown = false) {
+    const breakdown = {
+      pushups: data.pushups * 2,
+      squats: data.squats * 1.8,
+      situps: data.situps * 1.5,
+      jumpingjacks: data.jumpingjacks * 1,
+      burpees: data.burpees * 2,
+      lunges: data.lunges * 1.8,
+      running: data.running * 2,
+      plank: Math.floor(data.plank / 10) * 1,
+      chinups: data.chinups * 2,
+      rows: data.rows * 1.5,
+      towel: Math.floor(data.towel / 10) * 1.5,
+      wrists: data.wrists * 1,
+      crunches: data.crunches * 1.5,
+      legraises: data.legraises * 2,
+      flutter: Math.floor(data.flutter / 10) * 1.5,
+      curls: data.curls * 2
+    };
+
+    const totalXP = Object.values(breakdown).reduce((a, b) => a + b, 0);
+
+    if (showBreakdown) {
+      let breakdownMsg = "XP Breakdown:\\n";
+      for (const [exercise, xp] of Object.entries(breakdown)) {
+        if (xp > 0) breakdownMsg += `${exercise}: +${xp} XP\\n`;
+      }
+      alert(breakdownMsg + `\\nTotal: ${totalXP} XP`);
+    }
+
+    return totalXP;
+  }
+
+  function getNextXPNeeded(level) {
+    if (level <= 10) return 100;
+    if (level <= 30) return 150;
+    if (level <= 50) return 200;
+    if (level <= 70) return 250;
+    if (level <= 90) return 300;
+    return 400;
+  }
+
+  function xpToLevel(xp) {
+    let lvl = 1, required = 100;
+    while (xp >= required && lvl < 100) {
+      xp -= required;
+      lvl++;
+      required = getNextXPNeeded(lvl);
+    }
+    return lvl;
+  }
+
+  function getTitle(level) {
+    const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
+    for (let i = thresholds.length - 1; i >= 0; i--) {
+      if (level >= thresholds[i]) return levelTitles[i];
+    }
+    return levelTitles[0];
+  }
+
+  function getLegacyTitle(xp) {
+    let title = "Secrecy";
+    for (let i = 0; i < legacyTitles.length; i++) {
+      if (xp >= legacyTitles[i][0]) title = legacyTitles[i][1];
+    }
+    return title;
+  }
+
+  function updateUI() {
+    const bar = document.getElementById("xpBar");
+    const titleEl = document.getElementById("titleDisplay");
+
+    if (!inLegacyMode) {
+      level = xpToLevel(xp);
+      document.getElementById("level").innerText = level;
+      document.getElementById("totalXP").innerText = xp;
+
+      let req = getNextXPNeeded(level);
+      let xpThisLevel = xp;
+      for (let i = 1; i < level; i++) xpThisLevel -= getNextXPNeeded(i);
+
+      document.getElementById("xpToNext").innerText = req - xpThisLevel;
+      bar.style.width = `${(xpThisLevel / req) * 100}%`;
+
+      titleEl.innerText = getTitle(level);
+
+      const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
+      for (let i = 0; i < thresholds.length; i++) {
+        if (level < thresholds[i]) {
+          document.getElementById("nextRankName").innerText = levelTitles[i];
+          document.getElementById("levelsToNext").innerText = thresholds[i] - level;
+          break;
+        }
+      }
+    } else {
+      document.getElementById("legacySection").style.display = "block";
+      document.getElementById("legacyXP").innerText = legacyXP;
+      document.getElementById("legacyTitle").innerText = getLegacyTitle(legacyXP);
+    }
+
+    document.getElementById("dailyXP").innerText = xpHistory[today] || 0;
+
+    let weekTotal = 0;
+    for (const d in xpHistory) {
+      const diff = (new Date() - new Date(d)) / (1000 * 60 * 60 * 24);
+      if (diff <= 7) weekTotal += xpHistory[d];
+    }
+    document.getElementById("weeklyXP").innerText = weekTotal;
+
+    updateLeaderboard();
+  }
+
+  function showXPPopup(amount) {
+    const popup = document.getElementById("xp-popup");
+    popup.innerText = `+${amount} XP Gained!`;
+    popup.style.display = "block";
+    popup.style.opacity = "1";
+    setTimeout(() => {
+      popup.style.opacity = "0";
+    }, 1000);
+    setTimeout(() => {
+      popup.style.display = "none";
+    }, 1500);
+  }
+</script>
+  <script type="module">
+  // Firebase imports
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs, setDoc, doc, getDoc
+  } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
+    authDomain: "solo-levelling-35372.firebaseapp.com",
+    projectId: "solo-levelling-35372",
+    storageBucket: "solo-levelling-35372.appspot.com",
+    messagingSenderId: "177114822487",
+    appId: "1:177114822487:web:6e3cfee627c4eb0d637012"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.db = db;
+
+  // Fetch leaderboard users from Firestore
+  async function fetchLeaderboardFromFirestore() {
+    try {
+      const querySnapshot = await getDocs(collection(db, "leaderboard"));
+      let users = [];
+      querySnapshot.forEach((doc) => {
+        users.push(doc.data());
+      });
+      return users;
+    } catch (err) {
+      const debug = document.getElementById("debugOutput");
+      debug.innerText = "Firestore fetch error:\n" + err.message;
+      return [];
+    }
+  }
+
+  // Update leaderboard table
+  async function updateLeaderboard() {
+  try {
+    const users = await fetchLeaderboardFromFirestore();
+    if (!users || users.length === 0) return;
+
+    users.sort((a, b) => b.xp - a.xp);
+    const tbody = document.getElementById("leaderboard");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    users.forEach((player, index) => {
+      const level = xpToLevel(player.xp);
+      const title = getTitle(level);
+      const row = document.createElement("tr");
+      if (index === 0) row.style.color = "#ffd700";
+      else if (index === 1) row.style.color = "#c0c0c0";
+      else if (index === 2) row.style.color = "#cd7f32";
+      row.innerHTML = `<td>#${index + 1}</td><td>${player.name}</td><td>${player.xp}</td><td>${level}</td><td>${title}</td>`;
+      tbody.appendChild(row);
+    });
+  } catch (err) {
+    console.error("Error updating leaderboard:", err.message);
+  }
+}
+  // Log XP function (already defined in earlier parts)
+  async function logXP() {
+    const username = document.getElementById("username").value.trim() || "Anonymous";
+    document.getElementById("currentUserDisplay").innerText = username;
+
+    const data = {
+      pushups: +document.getElementById("pushups").value || 0,
+      squats: +document.getElementById("squats").value || 0,
+      situps: +document.getElementById("situps").value || 0,
+      jumpingjacks: +document.getElementById("jumpingjacks").value || 0,
+      burpees: +document.getElementById("burpees").value || 0,
+      lunges: +document.getElementById("lunges").value || 0,
+      running: +document.getElementById("running").value || 0,
+      plank: +document.getElementById("plank").value || 0,
+      chinups: +document.getElementById("chinups").value || 0,
+      rows: +document.getElementById("rows").value || 0,
+      towel: +document.getElementById("towel").value || 0,
+      wrists: +document.getElementById("wrists").value || 0,
+      crunches: +document.getElementById("crunches").value || 0,
+      legraises: +document.getElementById("legraises").value || 0,
+      flutter: +document.getElementById("flutter").value || 0,
+      curls: +document.getElementById("curls").value || 0
+    };
+
+    const limits = {
+      pushups: 100, squats: 100, situps: 100, jumpingjacks: 200,
+      burpees: 100, lunges: 100, running: 60, plank: 300,
+      chinups: 50, rows: 50, towel: 180, wrists: 100,
+      crunches: 100, legraises: 100, flutter: 180, curls: 100
+    };
+
+    for (let key in data) {
+      if (data[key] > limits[key]) {
+        alert(`${key} exceeds max. Reset to ${limits[key]}`);
+        data[key] = limits[key];
+      }
+    }
+
+    const gainedXP = getXPFromExercise(data, true);
+    showXPPopup(gainedXP);
+
+    if (inLegacyMode) {
+      legacyXP += gainedXP;
+    } else {
+      xp += gainedXP;
+      if (xpToLevel(xp) >= 100) inLegacyMode = true;
+    }
+
+    xpHistory[today] = (xpHistory[today] || 0) + gainedXP;
+    localStorage.setItem("xpHistory", JSON.stringify(xpHistory));
+    localStorage.setItem("xp", xp);
+    localStorage.setItem("legacyXP", legacyXP);
+    localStorage.setItem("inLegacyMode", inLegacyMode);
+    localStorage.setItem("lastUsername", username);
+
+    await setDoc(doc(db, "leaderboard", username), {
+      name: username,
+      xp: inLegacyMode ? legacyXP : xp
     });
 
-    function calculateXP() {
-      const p = Math.min(100, parseInt(document.getElementById("pushups").value) || 0);
-      const s = Math.min(100, parseInt(document.getElementById("squats").value) || 0);
-      const si = Math.min(100, parseInt(document.getElementById("situps").value) || 0);
-      const b = Math.min(100, parseInt(document.getElementById("burpees").value) || 0);
-      const earnedXP = p * 2 + s * 2 + si * 1 + b * 3;
-      xp += earnedXP;
-      shadowCoins += Math.floor(earnedXP / 10);
-      updateXP();
-      showPopup(`+${earnedXP} XP Gained!`);
-    }
+    updateUI();
+  }
 
-    function logExercise() {
-      const name = document.getElementById("username").value.trim() || "Anonymous";
-      const existing = leaderboard.find(u => u.name === name);
-      if (existing) {
-        existing.xp = xp;
-        existing.level = level;
-        existing.title = getTitle();
-        existing.avatar = selectedAvatar;
-      } else {
-        leaderboard.push({
-          name, xp, level, title: getTitle(), avatar: selectedAvatar
-        });
-      }
-      updateLeaderboard();
-      document.getElementById("displayUsername").textContent = name;
-    }
+  // Expose functions to the global scope
+  window.db = db;
+  window.logXP = logXP;
+  window.updateLeaderboard = updateLeaderboard;
+  window.fetchLeaderboardFromFirestore = fetchLeaderboardFromFirestore;
 
-    function updateXP() {
-      while (xp >= xpNeeded(level) && level < 100) {
-        xp -= xpNeeded(level);
-        level++;
-      }
-      if (level >= 100) {
-        legacyXP += xp;
-        xp = 0;
-        document.body.style.backgroundColor = "#000016";
-      }
-      document.getElementById("shadowCoins").textContent = shadowCoins;
-      document.getElementById("title").textContent = getTitle();
-    }
-
-    function getTitle() {
-      if (level >= 100) return "Shadow Monarch";
-      else if (level >= 80) return "Monarch";
-      else if (level >= 60) return "Legendary Knight";
-      else if (level >= 40) return "Elite Warrior";
-      else if (level >= 20) return "Skilled Hunter";
-      return "Novice Shadow";
-    }
-
-    function showPopup(msg) {
-      const popup = document.getElementById("xpPopup");
-      popup.textContent = msg;
-      popup.style.display = "block";
-      setTimeout(() => popup.style.display = "none", 3000);
-    }
-
-    function updateLeaderboard() {
-      const list = document.getElementById("leaderboardList");
-      list.innerHTML = "";
-      const start = currentPage * pageSize;
-      leaderboard.slice(start, start + pageSize).forEach(user => {
-        const div = document.createElement("div");
-        div.className = "leaderboard-entry";
-        div.innerHTML = `<div>${user.avatar || "👤"} ${user.name}<br><small>${user.title}</small></div><div>XP: ${user.xp}<br>Level: ${user.level}</div>`;
-        list.appendChild(div);
-      });
-    }
-
-    function sortLeaderboard(type) {
-      if (type === "xp") leaderboard.sort((a, b) => b.xp - a.xp);
-      else leaderboard.sort((a, b) => b.level - a.level);
-      updateLeaderboard();
-    }
-
-    function prevPage() {
-      if (currentPage > 0) {
-        currentPage--;
-        updateLeaderboard();
-      }
-    }
-
-    function nextPage() {
-      if ((currentPage + 1) * pageSize < leaderboard.length) {
-        currentPage++;
-        updateLeaderboard();
-      }
-    }
-
-    function openShop() {
-      document.getElementById("dynamicSection").innerHTML = `
-        <div class="xp-box"><h3>In-Game Shop</h3>
-        <p>Coming soon: Power-ups, Boosts, Titles, and Themes!</p></div>`;
-    }
-
-    function viewProgress() {
-      document.getElementById("dynamicSection").innerHTML = `
-        <div class="xp-box"><h3>Progress Chart</h3>
-        <p>XP: ${xp} | Level: ${level} | Shadow Coins: ${shadowCoins}</p>
-        <p>Legacy XP: ${legacyXP}</p></div>`;
-    }
-
-    function showAchievements() {
-      document.getElementById("dynamicSection").innerHTML = `
-        <div class="xp-box"><h3>Achievements</h3>
-        <p>- First Log<br>- 500 XP Earned<br>- Reached Level 10<br>- Shadow Coins Collected</p></div>`;
-    }
-
-    function showQuests() {
-      const quests = [
-        "Complete 50 push-ups",
-        "Earn 200 XP today",
-        "Reach Level 5",
-        "Collect 20 Shadow Coins",
-        "Log 3 different exercises"
-      ];
-      document.getElementById("dynamicSection").innerHTML = `
-        <div class="xp-box"><h3>Daily Quests</h3>
-        <ul>${quests.map(q => `<li>${q}</li>`).join("")}</ul></div>`;
-    }
-  </script>
+  // Refresh UI when page loads
+  window.addEventListener("DOMContentLoaded", () => {
+    updateUI();
+  });
+</script>
 </body>
 </html>
