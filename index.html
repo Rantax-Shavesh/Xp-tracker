@@ -4,345 +4,258 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shadow XP Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      background-color: #0b0c1a;
-      color: #b3cfff;
       font-family: 'Segoe UI', sans-serif;
+      background: #05050b;
+      color: #fff;
+      margin: 0;
       padding: 20px;
     }
 
-    h1 {
+    h1, h2, h3 {
       color: #4da6ff;
-      text-shadow: 0 0 10px #4da6ff;
     }
 
-    h2#welcome {
-      font-size: 28px;
-      color: #4da6ff;
-      margin-bottom: 10px;
+    input, select, button {
+      font-family: inherit;
     }
 
-    .title-badge {
-      display: inline-block;
-      background: #4da6ff;
-      color: #000;
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .xp-bar-container {
-      background: #333;
-      border-radius: 10px;
-      overflow: hidden;
-      width: 100%;
-      height: 30px;
-      margin: 10px 0;
-    }
-
-    .xp-bar {
-      height: 100%;
-      background: linear-gradient(to right, #4da6ff, #004080);
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 5px;
-      border: none;
-      font-size: 16px;
-      width: 100%;
-    }
-
-    button {
-      background-color: #4da6ff;
-      color: #000;
-      font-weight: bold;
+    .avatarOption {
+      font-size: 24px;
+      margin-right: 8px;
       cursor: pointer;
-    }
-
-    .floating-box {
-      border: 1px solid #4da6ff;
-      padding: 15px;
+      border: 2px solid transparent;
+      padding: 5px;
       border-radius: 8px;
-      background-color: rgba(255, 255, 255, 0.03);
-      box-shadow: 0 0 10px #4da6ff;
-      margin-bottom: 20px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
+    .avatarOption.selected {
+      border-color: #4da6ff;
+      background-color: #0b0c1a;
     }
 
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #4da6ff44;
-    }
-
-    th {
-      color: #4da6ff;
-    }
-
-    .tag {
-      background-color: #4da6ff;
-      color: #000;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      margin-left: 8px;
-    }
-
-    #xp-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.85);
-      color: #4da6ff;
-      padding: 20px;
-      border: 2px solid #4da6ff;
+    .leaderboard-card {
+      display: flex;
+      align-items: center;
+      background: #0b0c1a;
+      border: 2px solid #4da6ff33;
+      border-left: 5px solid #4da6ff;
+      padding: 12px 16px;
       border-radius: 10px;
-      text-align: center;
-      font-size: 22px;
+      justify-content: space-between;
+      box-shadow: 0 0 10px #4da6ff33;
+      transition: transform 0.2s ease;
+    }
+
+    .leaderboard-card:hover {
+      transform: scale(1.02);
+    }
+
+    .leaderboard-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .leaderboard-avatar {
+      font-size: 28px;
+    }
+
+    .leaderboard-name {
+      font-size: 16px;
       font-weight: bold;
-      display: none;
-      z-index: 9999;
-      box-shadow: 0 0 20px #4da6ff99;
+      color: #4da6ff;
+    }
+
+    .leaderboard-title {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 2px;
+    }
+
+    .leaderboard-info {
+      display: flex;
+      gap: 16px;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    @media (max-width: 600px) {
+      .leaderboard-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .leaderboard-info {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+      }
+    }
+
+    .rarity-common { border-color: #999; }
+    .rarity-rare { border-color: #4da6ff; }
+    .rarity-epic { border-color: #a851ff; }
+    .rarity-legendary {
+      border-color: #ffc107;
+      box-shadow: 0 0 10px #ffc10788, 0 0 20px #ffdf70aa;
+      animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 10px #ffc10788, 0 0 20px #ffdf70aa; }
+      50% { box-shadow: 0 0 25px #ffb300cc, 0 0 40px #ffdf70cc; }
     }
   </style>
 </head>
 <body>
   <h1>Shadow XP Tracker</h1>
-  <h2 id="welcome">Welcome, <span id="currentUserDisplay">Anonymous</span></h2>
-  <div id="titleDisplay" class="title-badge">Novice Shadow</div>
-  <p><strong>Next Rank:</strong> <span id="nextRankName">—</span> (in <span id="levelsToNext">0</span> levels)</p>
-  <p><strong>Level:</strong> <span id="level">1</span></p>
-  <p><strong>Total XP:</strong> <span id="totalXP">0</span></p>
-  <p><strong>XP to next level:</strong> <span id="xpToNext">100</span></p>
-  <p><strong>Daily XP:</strong> <span id="dailyXP">0</span></p>
-  <p><strong>Weekly XP:</strong> <span id="weeklyXP">0</span></p>
-  <div class="xp-bar-container">
-    <div class="xp-bar" id="xpBar"></div>
+
+  <label><strong>Username:</strong></label><br>
+  <input type="text" id="username" placeholder="Enter your name" style="margin-bottom: 10px; padding: 6px; border-radius: 6px;"><br>
+
+  <label style="color:#4da6ff; font-weight:bold;">Choose Your Avatar:</label><br>
+  <div id="avatarSelector" style="margin-bottom: 10px;">
+    <span class="avatarOption" onclick="selectAvatar('🧙')">🧙</span>
+    <span class="avatarOption" onclick="selectAvatar('🧛')">🧛</span>
+    <span class="avatarOption" onclick="selectAvatar('🧝')">🧝</span>
+    <span class="avatarOption" onclick="selectAvatar('🧞')">🧞</span>
+    <span class="avatarOption" onclick="selectAvatar('👤')">👤</span>
+    <span class="avatarOption" onclick="selectAvatar('⚔️')">⚔️</span>
+    <span class="avatarOption" onclick="selectAvatar('👑')">👑</span>
   </div>
 
-  <div id="xp-popup">+100 XP Gained!</div>
-    <div class="floating-box">
-    <h2>Log Exercise</h2>
-    <input type="text" id="username" placeholder="Your Name (for leaderboard)" />
+  <div id="currentUserDisplay" style="font-size: 20px; margin-bottom: 12px;"></div>
 
-    <div><label>Push-ups <span class="tag">Chest/Triceps</span></label><input type="number" id="pushups" max="100" placeholder="Max: 100" /></div>
-    <div><label>Squats <span class="tag">Legs</span></label><input type="number" id="squats" max="100" placeholder="Max: 100" /></div>
-    <div><label>Sit-ups <span class="tag">Abs</span></label><input type="number" id="situps" max="100" placeholder="Max: 100" /></div>
-    <div><label>Jumping Jacks <span class="tag">Cardio</span></label><input type="number" id="jumpingjacks" max="200" placeholder="Max: 200" /></div>
-    <div><label>Burpees <span class="tag">Full Body</span></label><input type="number" id="burpees" max="100" placeholder="Max: 100" /></div>
-    <div><label>Lunges <span class="tag">Legs</span></label><input type="number" id="lunges" max="100" placeholder="Max: 100" /></div>
-    <div><label>Running (min) <span class="tag">Cardio</span></label><input type="number" id="running" max="60" placeholder="Max: 60 min" /></div>
-    <div><label>Plank (sec) <span class="tag">Core</span></label><input type="number" id="plank" max="300" placeholder="Max: 300 sec" /></div>
-    <div><label>Chin-ups <span class="tag">Biceps</span></label><input type="number" id="chinups" max="50" placeholder="Max: 50" /></div>
-    <div><label>Rows <span class="tag">Back/Biceps</span></label><input type="number" id="rows" max="50" placeholder="Max: 50" /></div>
-    <div><label>Towel Hangs (sec) <span class="tag">Forearms</span></label><input type="number" id="towel" max="180" placeholder="Max: 180 sec" /></div>
-    <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" max="100" placeholder="Max: 100" /></div>
-    <div><label>Crunches <span class="tag">Abs</span></label><input type="number" id="crunches" max="100" placeholder="Max: 100" /></div>
-    <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" max="100" placeholder="Max: 100" /></div>
-    <div><label>Flutter Kicks (sec) <span class="tag">Abs</span></label><input type="number" id="flutter" max="180" placeholder="Max: 180 sec" /></div>
-    <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" max="100" placeholder="Max: 100" /></div>
+  <!-- XP Logging -->
+  <div>
+    <label><strong>Push-ups:</strong></label>
+    <input type="number" id="pushups" placeholder="0" min="0"><br>
 
-    <button onclick="logXP()">Add XP</button>
+    <label><strong>Squats:</strong></label>
+    <input type="number" id="squats" placeholder="0" min="0"><br>
+
+    <label><strong>Sit-ups:</strong></label>
+    <input type="number" id="situps" placeholder="0" min="0"><br>
+
+    <label><strong>Burpees:</strong></label>
+    <input type="number" id="burpees" placeholder="0" min="0"><br>
   </div>
 
-  <div class="floating-box" id="legacySection" style="display:none;">
-    <h2>Legacy XP Mode</h2>
-    <p><strong>Legacy XP:</strong> <span id="legacyXP">0</span></p>
-    <p><strong>Legacy Title:</strong> <span id="legacyTitle">Secrecy</span></p>
+  <button onclick="calculateXP()" style="margin-top: 10px;">Calculate XP</button>
+  <button onclick="logXP()">Log Exercise</button>
+
+  <hr>
+    <!-- Sort Dropdown + Leaderboard Container -->
+  <div style="margin-bottom: 12px; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+    <label style="color: #4da6ff;">Sort by:</label>
+    <select id="sortOption" onchange="updateLeaderboard()" style="padding: 6px; background: #0b0c1a; color: #4da6ff; border: 1px solid #4da6ff; border-radius: 6px;">
+      <option value="xp">XP</option>
+      <option value="level">Level</option>
+      <option value="name">Name</option>
+    </select>
   </div>
 
-  <div class="floating-box">
-    <h2>Leaderboard</h2>
-    <table>
-      <thead>
-        <tr><th>#</th><th>Name</th><th>XP</th><th>Level</th><th>Title</th></tr>
-      </thead>
-      <tbody id="leaderboard"></tbody>
-    </table>
+  <div id="leaderboardContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+  <div id="paginationControls" style="text-align: center; margin-top: 16px;">
+    <button onclick="prevPage()" style="margin-right: 10px; padding: 6px 12px; border-radius: 6px;">Prev</button>
+    <span id="pageInfo" style="color: #4da6ff; font-weight: bold;">Page 1</span>
+    <button onclick="nextPage()" style="margin-left: 10px; padding: 6px 12px; border-radius: 6px;">Next</button>
   </div>
-  <label style="color:#4da6ff; font-size: 14px;">
-  <input type="checkbox" id="debugToggle" onchange="toggleDebug()" />
-  Enable Debug Mode
-</label>
 
-<div id="debugBox" style="white-space:pre-wrap; background:#111; color:#4da6ff; padding:10px; margin-top:10px; border:1px solid #4da6ff; display:none;">
-  <strong>Debug Info:</strong>
-  <div id="debugOutput">Debug mode active...</div>
+  <!-- Shadow Coins HUD -->
+  <div id="coinDisplay" style="position: fixed; top: 10px; right: 15px; background: #111; color: #4da6ff; padding: 8px 14px; border-radius: 8px; font-weight: bold; z-index: 999;">
+    Shadow Coins: <span id="coinCount">0</span>
+  </div>
+
+  <!-- Floating Buttons -->
+  <button onclick="toggleQuestPanel()" style="position: fixed; bottom: 20px; right: 20px; background: #4da6ff; color: #000; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; z-index: 999;">
+    Daily Quests
+  </button>
+
+  <button onclick="toggleAchievements()" style="position: fixed; bottom: 80px; right: 20px; background: #4da6ff; color: #000; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; z-index: 999;">
+    Achievements
+  </button>
+
+  <button onclick="toggleProgressChart()" style="position: fixed; bottom: 140px; right: 20px; background: #4da6ff; color: #000; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; z-index: 999;">
+    View Progress
+  </button>
+
+  <button onclick="toggleShop()" style="position: fixed; bottom: 200px; right: 20px; background: #4da6ff; color: #000; padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; z-index: 999;">
+    Shop
+  </button>
+  <!-- Quest Panel -->
+<div id="questPanel" style="display: none; position: fixed; bottom: 80px; right: 20px; width: 300px; background: #0b0c1a; border: 2px solid #4da6ff; padding: 15px; border-radius: 12px; box-shadow: 0 0 12px #4da6ff; z-index: 999;">
+  <h3 style="color: #4da6ff; margin-top: 0;">Daily Quests</h3>
+  <div id="questList"></div>
 </div>
-  <script>
-  let xp = +localStorage.getItem("xp") || 0;
-  let legacyXP = +localStorage.getItem("legacyXP") || 0;
-  let inLegacyMode = localStorage.getItem("inLegacyMode") === "true";
-  let level = 1;
-  let today = new Date().toLocaleDateString();
-  let xpHistory = JSON.parse(localStorage.getItem("xpHistory") || "{}");
 
-  const levelTitles = [
-    "Novice Shadow", "E-Rank Hunter", "D-Rank Hunter", "C-Rank Hunter",
-    "B-Rank Hunter", "A-Rank Hunter", "S-Rank Hunter", "Shadow Soldier",
-    "Elite Shadow", "Commander of Shadows", "Monarch in Training",
-    "Shadow Monarch", "Awakened Monarch", "Secrecy"
-  ];
+<!-- Achievements Panel -->
+<div id="achievementsPanel" style="display: none; position: fixed; bottom: 160px; left: 20px; width: 320px; background: #0b0c1a; border: 2px solid #4da6ff; padding: 15px; border-radius: 12px; box-shadow: 0 0 12px #4da6ff; z-index: 999;">
+  <h3 style="color: #4da6ff; margin-top: 0;">Achievements</h3>
+  <div id="achievementList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"></div>
+</div>
 
-  const legacyTitles = [
-    [0, "Secrecy"], [100, "Shadowborn"], [250, "Void Initiate"],
-    [500, "Abyss Walker"], [750, "Eclipse Soul"], [1000, "Shadow Ascendant"],
-    [1500, "Monarch’s Echo"], [2000, "Legacy Wielder"],
-    [3000, "Dimensional Phantom"], [5000, "Transcendent One"],
-    [7500, "Timebreaker"], [10000, "God of the Grind"]
-  ];
+<!-- Progress Chart Panel -->
+<div id="progressChartPanel" style="display:none; position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: #0b0c1a; padding: 20px; border-radius: 12px; border: 2px solid #4da6ff; box-shadow: 0 0 12px #4da6ff; z-index: 999;">
+  <h3 style="margin-top: 0; color: #4da6ff;" id="chartTitle">XP Progress (Last 7 Days)</h3>
+  <select id="chartType" onchange="renderXPChart()" style="margin-bottom: 10px; background: #111; color: #4da6ff; border: 1px solid #4da6ff; padding: 5px 10px; border-radius: 6px;">
+    <option value="daily">Daily (7 Days)</option>
+    <option value="weekly">Weekly (4 Weeks)</option>
+  </select>
+  <canvas id="xpChart" width="300" height="200"></canvas>
+</div>
 
-  const last = localStorage.getItem("lastUsername");
-  if (last) {
-    document.getElementById("username").value = last;
-    document.getElementById("currentUserDisplay").innerText = last;
-  }
+<!-- Shop Panel -->
+<div id="shopPanel" style="display:none; position: fixed; top: 10%; left: 50%; transform: translateX(-50%); width: 350px; background: #0b0c1a; border: 2px solid #4da6ff; padding: 20px; border-radius: 12px; box-shadow: 0 0 15px #4da6ff; z-index: 9999;">
+  <h3 style="color: #4da6ff; margin-top: 0;">Shadow Shop</h3>
+  <div id="shopItems"></div>
+  <button onclick="toggleShop()" style="margin-top: 15px; background: #4da6ff; color: #000; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold;">Close</button>
+</div>
 
-  function getXPFromExercise(data, showBreakdown = false) {
-    const breakdown = {
-      pushups: data.pushups * 2,
-      squats: data.squats * 1.8,
-      situps: data.situps * 1.5,
-      jumpingjacks: data.jumpingjacks * 1,
-      burpees: data.burpees * 2,
-      lunges: data.lunges * 1.8,
-      running: data.running * 2,
-      plank: Math.floor(data.plank / 10) * 1,
-      chinups: data.chinups * 2,
-      rows: data.rows * 1.5,
-      towel: Math.floor(data.towel / 10) * 1.5,
-      wrists: data.wrists * 1,
-      crunches: data.crunches * 1.5,
-      legraises: data.legraises * 2,
-      flutter: Math.floor(data.flutter / 10) * 1.5,
-      curls: data.curls * 2
-    };
+<!-- User Stats Panel -->
+<div id="userStatsPanel" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 15, 0.95); z-index: 9999; padding: 30px; overflow-y: auto;">
+  <div style="max-width: 600px; margin: 0 auto; background: #0b0c1a; border: 2px solid #4da6ff; padding: 20px; border-radius: 12px;">
+    <h2 id="userStatsTitle" style="margin-top: 0; color: #4da6ff;">User Stats</h2>
+    <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+      <tbody id="userStatsTable"></tbody>
+    </table>
+    <button onclick="closeUserStats()" style="margin-top: 20px; background: #4da6ff; color: #000; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold;">Close</button>
+  </div>
+</div>
 
-    const totalXP = Object.values(breakdown).reduce((a, b) => a + b, 0);
+<!-- Compare Panel -->
+<div id="comparePanel" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#05050bde; z-index:9999; padding:30px; overflow-y:auto;">
+  <div style="max-width: 700px; margin: auto; background:#0b0c1a; border:2px solid #4da6ff; border-radius:12px; padding:20px;">
+    <h2 style="color:#4da6ff;">Stat Comparison</h2>
+    <table style="width:100%; border-collapse: collapse; text-align: center;">
+      <thead style="color:#4da6ff;">
+        <tr>
+          <th>Stat</th>
+          <th>You</th>
+          <th>Opponent</th>
+        </tr>
+      </thead>
+      <tbody id="compareTable" style="color:#ccc;"></tbody>
+    </table>
+    <button onclick="closeComparePanel()" style="margin-top: 20px; background:#4da6ff; color:#000; padding:10px 20px; border:none; border-radius:8px; font-weight:bold;">Close</button>
+  </div>
+</div>
 
-    if (showBreakdown) {
-      let breakdownMsg = "XP Breakdown:\\n";
-      for (const [exercise, xp] of Object.entries(breakdown)) {
-        if (xp > 0) breakdownMsg += `${exercise}: +${xp} XP\\n`;
-      }
-      alert(breakdownMsg + `\\nTotal: ${totalXP} XP`);
-    }
-
-    return totalXP;
-  }
-
-  function getNextXPNeeded(level) {
-    if (level <= 10) return 100;
-    if (level <= 30) return 150;
-    if (level <= 50) return 200;
-    if (level <= 70) return 250;
-    if (level <= 90) return 300;
-    return 400;
-  }
-
-  function xpToLevel(xp) {
-    let lvl = 1, required = 100;
-    while (xp >= required && lvl < 100) {
-      xp -= required;
-      lvl++;
-      required = getNextXPNeeded(lvl);
-    }
-    return lvl;
-  }
-
-  function getTitle(level) {
-    const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
-    for (let i = thresholds.length - 1; i >= 0; i--) {
-      if (level >= thresholds[i]) return levelTitles[i];
-    }
-    return levelTitles[0];
-  }
-
-  function getLegacyTitle(xp) {
-    let title = "Secrecy";
-    for (let i = 0; i < legacyTitles.length; i++) {
-      if (xp >= legacyTitles[i][0]) title = legacyTitles[i][1];
-    }
-    return title;
-  }
-
-  function updateUI() {
-    const bar = document.getElementById("xpBar");
-    const titleEl = document.getElementById("titleDisplay");
-
-    if (!inLegacyMode) {
-      level = xpToLevel(xp);
-      document.getElementById("level").innerText = level;
-      document.getElementById("totalXP").innerText = xp;
-
-      let req = getNextXPNeeded(level);
-      let xpThisLevel = xp;
-      for (let i = 1; i < level; i++) xpThisLevel -= getNextXPNeeded(i);
-
-      document.getElementById("xpToNext").innerText = req - xpThisLevel;
-      bar.style.width = `${(xpThisLevel / req) * 100}%`;
-
-      titleEl.innerText = getTitle(level);
-
-      const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
-      for (let i = 0; i < thresholds.length; i++) {
-        if (level < thresholds[i]) {
-          document.getElementById("nextRankName").innerText = levelTitles[i];
-          document.getElementById("levelsToNext").innerText = thresholds[i] - level;
-          break;
-        }
-      }
-    } else {
-      document.getElementById("legacySection").style.display = "block";
-      document.getElementById("legacyXP").innerText = legacyXP;
-      document.getElementById("legacyTitle").innerText = getLegacyTitle(legacyXP);
-    }
-
-    document.getElementById("dailyXP").innerText = xpHistory[today] || 0;
-
-    let weekTotal = 0;
-    for (const d in xpHistory) {
-      const diff = (new Date() - new Date(d)) / (1000 * 60 * 60 * 24);
-      if (diff <= 7) weekTotal += xpHistory[d];
-    }
-    document.getElementById("weeklyXP").innerText = weekTotal;
-
-    updateLeaderboard();
-  }
-
-  function showXPPopup(amount) {
-    const popup = document.getElementById("xp-popup");
-    popup.innerText = `+${amount} XP Gained!`;
-    popup.style.display = "block";
-    popup.style.opacity = "1";
-    setTimeout(() => {
-      popup.style.opacity = "0";
-    }, 1000);
-    setTimeout(() => {
-      popup.style.display = "none";
-    }, 1500);
-  }
-</script>
-  <script type="module">
-  // Firebase imports
+<!-- Achievement Popup -->
+<div id="achievementPopup" style="display:none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: #111; color: #4da6ff; border: 2px solid #4da6ff; padding: 15px 25px; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 0 20px #4da6ff99; z-index: 9999;">
+  Achievement Unlocked: <span id="achievementName"></span>
+</div>
+<script type="module">
+  // --- Firebase Setup ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
   import {
     getFirestore, collection, getDocs, setDoc, doc, getDoc
   } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
     authDomain: "solo-levelling-35372.firebaseapp.com",
@@ -356,148 +269,453 @@
   const db = getFirestore(app);
   window.db = db;
 
-  // Fetch leaderboard users from Firestore
-  async function fetchLeaderboardFromFirestore() {
-    try {
-      const querySnapshot = await getDocs(collection(db, "leaderboard"));
-      let users = [];
-      querySnapshot.forEach((doc) => {
-        users.push(doc.data());
-      });
-      return users;
-    } catch (err) {
-      const debug = document.getElementById("debugOutput");
-      debug.innerText = "Firestore fetch error:\n" + err.message;
-      return [];
-    }
+  // --- Global Variables ---
+  let xp = 0;
+  let legacyXP = 0;
+  let inLegacyMode = false;
+  let selectedAvatar = localStorage.getItem("selectedAvatar") || "👤";
+  let unlockedItems = JSON.parse(localStorage.getItem("unlockedItems") || "[]");
+  let currentPage = 1;
+  const itemsPerPage = 10;
+  let cachedUsers = [];
+
+  const xpPerExercise = {
+    pushups: 2,
+    squats: 1.5,
+    situps: 1,
+    burpees: 2
+  };
+
+  const titleThresholds = [
+    { level: 1, title: "Novice Shadow" },
+    { level: 5, title: "Iron Hunter" },
+    { level: 10, title: "Shadow Initiate" },
+    { level: 20, title: "Elite Shadow" },
+    { level: 30, title: "Monarch" },
+    { level: 100, title: "Legacy Warrior" }
+  ];
+
+  const allAchievements = [
+    { id: "first-log", label: "First XP Log" },
+    { id: "50-xp", label: "Reach 50 XP" },
+    { id: "100-xp", label: "Reach 100 XP" },
+    { id: "quest-master", label: "Complete 3 Quests" }
+  ];
+    function calculateXP() {
+    const pushups = Math.min(+document.getElementById("pushups").value || 0, 100);
+    const squats = Math.min(+document.getElementById("squats").value || 0, 100);
+    const situps = Math.min(+document.getElementById("situps").value || 0, 100);
+    const burpees = Math.min(+document.getElementById("burpees").value || 0, 100);
+
+    const earned = Math.round(
+      (pushups * xpPerExercise.pushups) +
+      (squats * xpPerExercise.squats) +
+      (situps * xpPerExercise.situps) +
+      (burpees * xpPerExercise.burpees)
+    );
+    xp = earned;
+    alert(`You earned ${earned} XP!`);
   }
 
-  // Update leaderboard table
-  async function updateLeaderboard() {
-  const debug = document.getElementById("debugOutput");
-  if (debug) debug.innerText = "Fetching leaderboard...";
-
-  try {
-    const users = await fetchLeaderboardFromFirestore();
-
-    if (!users || users.length === 0) {
-      if (debug) debug.innerText += "\nNo users found.";
-      return;
+  function xpToLevel(xp) {
+    let level = 0, req = 10;
+    while (xp >= req && level < 100) {
+      xp -= req;
+      level++;
+      req = Math.floor(req * 1.1);
     }
-
-    if (debug) debug.innerText += "\nFetched users:\n" + JSON.stringify(users, null, 2);
-
-    users.sort((a, b) => b.xp - a.xp);
-    const tbody = document.getElementById("leaderboard");
-    if (!tbody) {
-      if (debug) debug.innerText += "\nTable body not found.";
-      return;
-    }
-
-    if (debug) debug.innerText += "\nTargeting table body: FOUND";
-    tbody.innerHTML = "";
-
-    users.forEach((player, index) => {
-      const level = xpToLevel(player.xp);
-      const title = getTitle(level);
-      const row = document.createElement("tr");
-
-      if (index === 0) row.style.color = "#ffd700";
-      else if (index === 1) row.style.color = "#c0c0c0";
-      else if (index === 2) row.style.color = "#cd7f32";
-
-      row.innerHTML = `
-        <td>#${index + 1}</td>
-        <td>${player.name}</td>
-        <td>${player.xp}</td>
-        <td>${level}</td>
-        <td>${title}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  } catch (err) {
-    if (debug) debug.innerText = "Error building leaderboard:\n" + err.message;
-    console.error("Leaderboard Error:", err);
+    return level;
   }
-}
-  // Log XP function (already defined in earlier parts)
-  async function logXP() {
-    const username = document.getElementById("username").value.trim() || "Anonymous";
-    document.getElementById("currentUserDisplay").innerText = username;
 
-    const data = {
-      pushups: +document.getElementById("pushups").value || 0,
-      squats: +document.getElementById("squats").value || 0,
-      situps: +document.getElementById("situps").value || 0,
-      jumpingjacks: +document.getElementById("jumpingjacks").value || 0,
-      burpees: +document.getElementById("burpees").value || 0,
-      lunges: +document.getElementById("lunges").value || 0,
-      running: +document.getElementById("running").value || 0,
-      plank: +document.getElementById("plank").value || 0,
-      chinups: +document.getElementById("chinups").value || 0,
-      rows: +document.getElementById("rows").value || 0,
-      towel: +document.getElementById("towel").value || 0,
-      wrists: +document.getElementById("wrists").value || 0,
-      crunches: +document.getElementById("crunches").value || 0,
-      legraises: +document.getElementById("legraises").value || 0,
-      flutter: +document.getElementById("flutter").value || 0,
-      curls: +document.getElementById("curls").value || 0
-    };
-
-    const limits = {
-      pushups: 100, squats: 100, situps: 100, jumpingjacks: 200,
-      burpees: 100, lunges: 100, running: 60, plank: 300,
-      chinups: 50, rows: 50, towel: 180, wrists: 100,
-      crunches: 100, legraises: 100, flutter: 180, curls: 100
-    };
-
-    for (let key in data) {
-      if (data[key] > limits[key]) {
-        alert(`${key} exceeds max. Reset to ${limits[key]}`);
-        data[key] = limits[key];
+  function getTitle(level) {
+    let title = "Novice Shadow";
+    for (let i = 0; i < titleThresholds.length; i++) {
+      if (level >= titleThresholds[i].level) {
+        title = titleThresholds[i].title;
       }
     }
+    return title;
+  }
 
-    const gainedXP = getXPFromExercise(data, true);
-    showXPPopup(gainedXP);
+  function logXP() {
+    const username = document.getElementById("username").value.trim();
+    if (!username) return alert("Enter your name first.");
+    const dateKey = new Date().toISOString().split("T")[0];
 
-    if (inLegacyMode) {
-      legacyXP += gainedXP;
-    } else {
-      xp += gainedXP;
-      if (xpToLevel(xp) >= 100) inLegacyMode = true;
-    }
+    const currentXP = +localStorage.getItem("totalXP") || 0;
+    const newTotal = currentXP + xp;
+    localStorage.setItem("totalXP", newTotal);
+    localStorage.setItem("lastXPDate", dateKey);
 
-    xpHistory[today] = (xpHistory[today] || 0) + gainedXP;
-    localStorage.setItem("xpHistory", JSON.stringify(xpHistory));
-    localStorage.setItem("xp", xp);
-    localStorage.setItem("legacyXP", legacyXP);
-    localStorage.setItem("inLegacyMode", inLegacyMode);
-    localStorage.setItem("lastUsername", username);
+    if (newTotal >= 100) inLegacyMode = true;
 
-    await setDoc(doc(db, "leaderboard", username), {
+    // Update chart data
+    const logs = JSON.parse(localStorage.getItem("xpLog") || "{}");
+    logs[dateKey] = (logs[dateKey] || 0) + xp;
+    localStorage.setItem("xpLog", JSON.stringify(logs));
+
+    // Update coins
+    let coins = +localStorage.getItem("shadowCoins") || 0;
+    coins += Math.floor(xp / 10);
+    localStorage.setItem("shadowCoins", coins);
+    document.getElementById("coinCount").innerText = coins;
+
+    // Update Firebase
+    setDoc(doc(db, "leaderboard", username), {
       name: username,
-      xp: inLegacyMode ? legacyXP : xp
+      xp: newTotal,
+      avatar: selectedAvatar,
+      badge: localStorage.getItem("equippedBadge") || ""
     });
 
+    checkAchievements(newTotal);
+    updateUI();
+    updateLeaderboard();
+    xp = 0;
+  }
+
+  function updateUI() {
+    const name = document.getElementById("username").value.trim();
+    const currentXP = +localStorage.getItem("totalXP") || 0;
+    const level = xpToLevel(currentXP);
+    const title = getTitle(level);
+    const badge = localStorage.getItem("equippedBadge") || "";
+    document.getElementById("currentUserDisplay").innerHTML = `
+      ${badge} ${selectedAvatar} ${name}<div style="font-size:12px; color:#4da6ff;">${title}</div>
+    `;
+    document.getElementById("coinCount").innerText = localStorage.getItem("shadowCoins") || "0";
+  }
+
+  function selectAvatar(avatar) {
+    selectedAvatar = avatar;
+    localStorage.setItem("selectedAvatar", avatar);
+    document.querySelectorAll(".avatarOption").forEach(el => {
+      el.classList.remove("selected");
+      if (el.textContent === avatar) el.classList.add("selected");
+    });
     updateUI();
   }
-    function toggleDebug() {
-  const debug = document.getElementById("debugBox");
-  const enabled = document.getElementById("debugToggle").checked;
-  debug.style.display = enabled ? "block" : "none";
-}
 
-  // Expose functions to the global scope
-  window.db = db;
-  window.logXP = logXP;
-  window.updateLeaderboard = updateLeaderboard;
-  window.fetchLeaderboardFromFirestore = fetchLeaderboardFromFirestore;
+  function fetchLeaderboardFromFirestore() {
+    return getDocs(collection(db, "leaderboard")).then(snapshot => {
+      const users = [];
+      snapshot.forEach(doc => users.push(doc.data()));
+      return users;
+    });
+  }
 
-  // Refresh UI when page loads
-  window.addEventListener("DOMContentLoaded", () => {
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      updateLeaderboard();
+    }
+  }
+
+  function nextPage() {
+    const totalPages = Math.ceil(cachedUsers.length / itemsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      updateLeaderboard();
+    }
+  }
+    async function updateLeaderboard() {
+    const container = document.getElementById("leaderboardContainer");
+    container.innerHTML = "";
+
+    if (cachedUsers.length === 0) {
+      const users = await fetchLeaderboardFromFirestore();
+      cachedUsers = users;
+    }
+
+    const sortBy = document.getElementById("sortOption")?.value || "xp";
+    if (document.getElementById("sortOption")) currentPage = 1;
+
+    cachedUsers.sort((a, b) => {
+      if (sortBy === "xp") return b.xp - a.xp;
+      if (sortBy === "level") return xpToLevel(b.xp) - xpToLevel(a.xp);
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return 0;
+    });
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const usersToDisplay = cachedUsers.slice(start, start + itemsPerPage);
+
+    usersToDisplay.forEach((player, index) => {
+      const level = xpToLevel(player.xp);
+      const title = getTitle(level);
+      const avatar = player.avatar || "👤";
+      const badge = player.badge || "";
+      const globalIndex = start + index;
+      const rankColor = globalIndex === 0 ? "#ffd700" : globalIndex === 1 ? "#c0c0c0" : globalIndex === 2 ? "#cd7f32" : "#4da6ff";
+
+      const card = document.createElement("div");
+      card.className = "leaderboard-card";
+      card.style.borderLeft = `5px solid ${rankColor}`;
+      card.style.boxShadow = globalIndex < 3 ? `0 0 15px ${rankColor}88` : "";
+
+      card.innerHTML = `
+        <div class="leaderboard-user" onclick="showUserStats('${player.name}')">
+          <div class="leaderboard-avatar">${badge} ${avatar}</div>
+          <div>
+            <div class="leaderboard-name">${player.name}</div>
+            <div class="leaderboard-title">${title}</div>
+          </div>
+        </div>
+        <div class="leaderboard-info">
+          <div>XP: ${player.xp}</div>
+          <div>Level: ${level}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    const totalPages = Math.ceil(cachedUsers.length / itemsPerPage);
+    document.getElementById("pageInfo").innerText = `Page ${currentPage} of ${totalPages}`;
+  }
+
+  function toggleShop() {
+    const panel = document.getElementById("shopPanel");
+    const isOpen = panel.style.display === "block";
+    panel.style.display = isOpen ? "none" : "block";
+    if (!isOpen) renderShop();
+  }
+
+  const shopItems = [
+    { id: "title_shadow_master", name: "Title: Shadow Master", type: "title", value: "Shadow Master", cost: 30, rarity: "epic" },
+    { id: "title_elite_hunter", name: "Title: Elite Hunter", type: "title", value: "Elite Hunter", cost: 20, rarity: "rare" },
+    { id: "badge_sword", name: "Badge: Twin Swords", type: "badge", value: "⚔️", cost: 15, rarity: "common" },
+    { id: "badge_wings", name: "Badge: Wings", type: "badge", value: "🪽", cost: 20, rarity: "rare" },
+    { id: "theme_neon", name: "Theme: Neon Abyss", type: "theme", value: "neon", cost: 40, rarity: "legendary" }
+  ];
+
+  function renderShop() {
+    const container = document.getElementById("shopItems");
+    const coins = +localStorage.getItem("shadowCoins") || 0;
+    container.innerHTML = "";
+
+    shopItems.forEach(item => {
+      const owned = unlockedItems.includes(item.id);
+      const isEquipped = localStorage.getItem(`equipped${item.type.charAt(0).toUpperCase() + item.type.slice(1)}`) === item.value;
+      const div = document.createElement("div");
+      div.className = `rarity-${item.rarity}`;
+      div.style.marginBottom = "10px";
+      div.style.padding = "10px";
+      div.style.borderRadius = "8px";
+      div.style.background = owned ? "#1a1a1a" : "#0b0c1a";
+
+      div.innerHTML = `
+        <div style="color:#4da6ff;"><strong>${item.name}</strong></div>
+        <div style="font-size: 13px; color:#ccc;">Cost: ${item.cost} Shadow Coins</div>
+        <button onclick="buyItem('${item.id}')" ${owned || coins < item.cost ? "disabled" : ""}>
+          ${owned ? "Owned" : coins < item.cost ? "Not enough coins" : "Buy"}
+        </button>
+        ${owned ? `<button onclick="equipItem('${item.id}')" ${isEquipped ? "disabled" : ""}>${isEquipped ? "Equipped" : "Equip"}</button>` : ""}
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function buyItem(itemId) {
+    const item = shopItems.find(i => i.id === itemId);
+    let coins = +localStorage.getItem("shadowCoins") || 0;
+    if (!item || coins < item.cost || unlockedItems.includes(item.id)) return;
+    coins -= item.cost;
+    unlockedItems.push(item.id);
+    localStorage.setItem("shadowCoins", coins);
+    localStorage.setItem("unlockedItems", JSON.stringify(unlockedItems));
+    document.getElementById("coinCount").innerText = coins;
+    renderShop();
+  }
+
+  function equipItem(itemId) {
+    const item = shopItems.find(i => i.id === itemId);
+    if (!item || !unlockedItems.includes(itemId)) return;
+    if (item.type === "title") localStorage.setItem("equippedTitle", item.value);
+    if (item.type === "badge") localStorage.setItem("equippedBadge", item.value);
     updateUI();
+    renderShop();
+  }
+
+  function toggleQuestPanel() {
+    const panel = document.getElementById("questPanel");
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+    if (panel.style.display === "block") renderQuests();
+  }
+
+  function renderQuests() {
+    const container = document.getElementById("questList");
+    container.innerHTML = "";
+    const quests = [
+      "Do 20 pushups", "Do 30 squats", "Do 15 burpees", "Earn 50 XP", "Log any exercise"
+    ];
+    const claimed = JSON.parse(localStorage.getItem("claimedQuests") || "[]");
+
+    quests.forEach((text, i) => {
+      const id = `q${i}`;
+      const claimedAlready = claimed.includes(id);
+      const div = document.createElement("div");
+      div.innerHTML = `
+        ${text}
+        <button onclick="claimQuest('${id}')" ${claimedAlready ? "disabled" : ""}>
+          ${claimedAlready ? "Claimed" : "Claim"}
+        </button>`;
+      container.appendChild(div);
+    });
+  }
+
+  function claimQuest(id) {
+    let claimed = JSON.parse(localStorage.getItem("claimedQuests") || "[]");
+    if (!claimed.includes(id)) {
+      claimed.push(id);
+      localStorage.setItem("claimedQuests", JSON.stringify(claimed));
+      let coins = +localStorage.getItem("shadowCoins") || 0;
+      coins += 5;
+      localStorage.setItem("shadowCoins", coins);
+      document.getElementById("coinCount").innerText = coins;
+      renderQuests();
+    }
+  }
+
+  function checkAchievements(xpValue) {
+    const unlocked = JSON.parse(localStorage.getItem("unlockedAchievements") || "[]");
+    const newlyUnlocked = [];
+
+    allAchievements.forEach(a => {
+      if (!unlocked.includes(a.id)) {
+        if (a.id === "first-log" && xpValue > 0) newlyUnlocked.push(a.id);
+        if (a.id === "50-xp" && xpValue >= 50) newlyUnlocked.push(a.id);
+        if (a.id === "100-xp" && xpValue >= 100) newlyUnlocked.push(a.id);
+        if (a.id === "quest-master" && (JSON.parse(localStorage.getItem("claimedQuests") || "[]").length >= 3)) newlyUnlocked.push(a.id);
+      }
+    });
+
+    if (newlyUnlocked.length > 0) {
+      newlyUnlocked.forEach(id => {
+        const a = allAchievements.find(a => a.id === id);
+        if (a) {
+          document.getElementById("achievementName").innerText = a.label;
+          document.getElementById("achievementPopup").style.display = "block";
+          setTimeout(() => document.getElementById("achievementPopup").style.display = "none", 3000);
+        }
+      });
+      localStorage.setItem("unlockedAchievements", JSON.stringify([...unlocked, ...newlyUnlocked]));
+    }
+  }
+
+  function toggleAchievements() {
+    const panel = document.getElementById("achievementsPanel");
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+    const unlocked = JSON.parse(localStorage.getItem("unlockedAchievements") || "[]");
+    const container = document.getElementById("achievementList");
+    container.innerHTML = "";
+    allAchievements.forEach(a => {
+      const box = document.createElement("div");
+      box.style.border = "1px solid #4da6ff";
+      box.style.padding = "10px";
+      box.style.borderRadius = "6px";
+      box.style.background = unlocked.includes(a.id) ? "#1a1a1a" : "#0b0c1a";
+      box.innerText = unlocked.includes(a.id) ? `✅ ${a.label}` : a.label;
+      container.appendChild(box);
+    });
+  }
+
+  function toggleProgressChart() {
+    const panel = document.getElementById("progressChartPanel");
+    panel.style.display = panel.style.display === "block" ? "none" : "block";
+    renderXPChart();
+  }
+
+  function renderXPChart() {
+    const ctx = document.getElementById("xpChart").getContext("2d");
+    const type = document.getElementById("chartType").value;
+    const log = JSON.parse(localStorage.getItem("xpLog") || "{}");
+
+    let labels = [], data = [];
+    if (type === "daily") {
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().split("T")[0];
+        labels.push(key.slice(5));
+        data.push(log[key] || 0);
+      }
+    } else {
+      // weekly
+      const weeks = [0, 0, 0, 0];
+      Object.keys(log).forEach(key => {
+        const date = new Date(key);
+        const diff = Math.floor((new Date() - date) / (1000 * 60 * 60 * 24));
+        const week = Math.floor(diff / 7);
+        if (week < 4) weeks[3 - week] += log[key];
+      });
+      labels = ["W1", "W2", "W3", "W4"];
+      data = weeks;
+    }
+
+    if (window.xpChartInstance) window.xpChartInstance.destroy();
+    window.xpChartInstance = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "XP",
+          data,
+          backgroundColor: "#4da6ff"
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  function showUserStats(username) {
+    const panel = document.getElementById("userStatsPanel");
+    const table = document.getElementById("userStatsTable");
+    const title = document.getElementById("userStatsTitle");
+
+    title.innerText = `Stats for ${username}`;
+    table.innerHTML = `<tr><td style="color:#999;">Loading...</td></tr>`;
+    panel.style.display = "block";
+
+    const docRef = doc(db, "leaderboard", username);
+    getDoc(docRef).then(docSnap => {
+      if (!docSnap.exists()) {
+        table.innerHTML = `<tr><td>User data not found.</td></tr>`;
+        return;
+      }
+
+      const stats = docSnap.data();
+      const level = xpToLevel(stats.xp);
+      const title = getTitle(level);
+
+      let rows = `
+        <tr><td style="color:#4da6ff;">XP</td><td>${stats.xp}</td></tr>
+        <tr><td style="color:#4da6ff;">Level</td><td>${level}</td></tr>
+        <tr><td style="color:#4da6ff;">Rank Title</td><td>${title}</td></tr>
+      `;
+
+      table.innerHTML = rows;
+    });
+  }
+
+  function closeUserStats() {
+    document.getElementById("userStatsPanel").style.display = "none";
+  }
+
+  function closeComparePanel() {
+    document.getElementById("comparePanel").style.display = "none";
+  }
+
+  // Initialize
+  window.addEventListener("DOMContentLoaded", () => {
+    selectAvatar(selectedAvatar);
+    updateUI();
+    updateLeaderboard();
   });
+
 </script>
 </body>
 </html>
