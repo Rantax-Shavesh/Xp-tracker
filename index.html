@@ -4,380 +4,141 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shadow XP Tracker</title>
-  <style>
-    body {
-      background-color: #0b0c1a;
-      color: #b3cfff;
-      font-family: 'Segoe UI', sans-serif;
-      padding: 20px;
-    }
-
-    h1 {
-      color: #4da6ff;
-      text-shadow: 0 0 10px #4da6ff;
-    }
-
-    h2#welcome {
-      font-size: 28px;
-      color: #4da6ff;
-      margin-bottom: 10px;
-    }
-
-    .title-badge {
-      display: inline-block;
-      background: #4da6ff;
-      color: #000;
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .xp-bar-container {
-      background: #333;
-      border-radius: 10px;
-      overflow: hidden;
-      width: 100%;
-      height: 30px;
-      margin: 10px 0;
-    }
-
-    .xp-bar {
-      height: 100%;
-      background: linear-gradient(to right, #4da6ff, #004080);
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 5px;
-      border: none;
-      font-size: 16px;
-      width: 100%;
-    }
-
-    button {
-      background-color: #4da6ff;
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .floating-box {
-      border: 1px solid #4da6ff;
-      padding: 15px;
-      border-radius: 8px;
-      background-color: rgba(255, 255, 255, 0.03);
-      box-shadow: 0 0 10px #4da6ff;
-      margin-bottom: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #4da6ff44;
-    }
-
-    th {
-      color: #4da6ff;
-    }
-
-    .tag {
-      background-color: #4da6ff;
-      color: #000;
-      font-size: 12px;
-      padding: 2px 6px;
-      border-radius: 6px;
-      margin-left: 8px;
-    }
-
-    #xp-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.85);
-      color: #4da6ff;
-      padding: 20px;
-      border: 2px solid #4da6ff;
-      border-radius: 10px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      display: none;
-      z-index: 9999;
-      box-shadow: 0 0 20px #4da6ff99;
-    }
-  </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #111; color: #eee; }
+    h1 { color: #0f0; }
+    input, select, button { margin: 5px 0; padding: 8px; font-size: 16px; }
+    .level { margin-top: 10px; }
+    canvas { max-width: 600px; margin-top: 20px; }
+    .leaderboard { margin-top: 20px; }
+  </style>
 </head>
 <body>
   <h1>Shadow XP Tracker</h1>
-  <h2 id="welcome">Welcome, <span id="currentUserDisplay">Anonymous</span></h2>
-  <div id="titleDisplay" class="title-badge">Novice Shadow</div>
-  <p><strong>Next Rank:</strong> <span id="nextRankName">—</span> (in <span id="levelsToNext">0</span> levels)</p>
-  <p><strong>Level:</strong> <span id="level">1</span></p>
-  <p><strong>Total XP:</strong> <span id="totalXP">0</span></p>
-  <p><strong>XP to next level:</strong> <span id="xpToNext">100</span></p>
-  <p><strong>Daily XP:</strong> <span id="dailyXP">0</span></p>
-  <p><strong>Weekly XP:</strong> <span id="weeklyXP">0</span></p>
-  <div class="xp-bar-container">
-    <div class="xp-bar" id="xpBar"></div>
-  </div>
-  
-  <canvas id="xpChart" width="400" height="200"></canvas>
 
-  <div id="xp-popup">+100 XP Gained!</div>
-    <div class="floating-box">
-    <h2>Log Exercise</h2>
-    <input type="text" id="username" placeholder="Your Name (for leaderboard)" />
+  <label>Username:</label>
+  <input type="text" id="username" placeholder="Enter your name" />
+  <br>
 
-    <div><label>Push-ups <span class="tag">Chest/Triceps</span></label><input type="number" id="pushups" max="100" placeholder="Max: 100" /></div>
-    <div><label>Squats <span class="tag">Legs</span></label><input type="number" id="squats" max="100" placeholder="Max: 100" /></div>
-    <div><label>Sit-ups <span class="tag">Abs</span></label><input type="number" id="situps" max="100" placeholder="Max: 100" /></div>
-    <div><label>Jumping Jacks <span class="tag">Cardio</span></label><input type="number" id="jumpingjacks" max="200" placeholder="Max: 200" /></div>
-    <div><label>Burpees <span class="tag">Full Body</span></label><input type="number" id="burpees" max="100" placeholder="Max: 100" /></div>
-    <div><label>Lunges <span class="tag">Legs</span></label><input type="number" id="lunges" max="100" placeholder="Max: 100" /></div>
-    <div><label>Running (min) <span class="tag">Cardio</span></label><input type="number" id="running" max="60" placeholder="Max: 60 min" /></div>
-    <div><label>Plank (sec) <span class="tag">Core</span></label><input type="number" id="plank" max="300" placeholder="Max: 300 sec" /></div>
-    <div><label>Chin-ups <span class="tag">Biceps</span></label><input type="number" id="chinups" max="50" placeholder="Max: 50" /></div>
-    <div><label>Rows <span class="tag">Back/Biceps</span></label><input type="number" id="rows" max="50" placeholder="Max: 50" /></div>
-    <div><label>Towel Hangs (sec) <span class="tag">Forearms</span></label><input type="number" id="towel" max="180" placeholder="Max: 180 sec" /></div>
-    <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" max="100" placeholder="Max: 100" /></div>
-    <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" max="100" placeholder="Max: 100" /></div>
-    <div><label>Flutter Kicks (sec) <span class="tag">Abs</span></label><input type="number" id="flutter" max="180" placeholder="Max: 180 sec" /></div>
-    <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" max="100" placeholder="Max: 100" /></div>
+  <label>Exercise:</label>
+  <select id="exercise">
+    <option value="Push-ups">Push-ups</option>
+    <option value="Squats">Squats</option>
+    <option value="Sit-ups">Sit-ups</option>
+    <option value="Jumping Jacks">Jumping Jacks</option>
+    <option value="Burpees">Burpees</option>
+    <option value="Lunges">Lunges</option>
+    <option value="Running (min)">Running (min)</option>
+    <option value="Plank (sec)">Plank (sec)</option>
+    <option value="Chin-ups">Chin-ups</option>
+    <option value="Rows">Rows</option>
+    <option value="Towel Hangs (sec)">Towel Hangs (sec)</option>
+    <option value="Wrist Rolls">Wrist Rolls</option>
+    <option value="Crunches">Crunches</option>
+    <option value="Leg Raises">Leg Raises</option>
+    <option value="Flutter Kicks (sec)">Flutter Kicks (sec)</option>
+    <option value="Curls">Curls</option>
+  </select>
+  <br>
 
-    <button onclick="logXP()">Add XP</button>
+  <label>Amount:</label>
+  <input type="number" id="amount" />
+  <button onclick="logXP()">Log XP</button>
+
+  <div class="level">
+    <p>Level: <span id="level">1</span></p>
+    <p>XP: <span id="xp">0</span> / <span id="xpNeeded">100</span></p>
+    <p>Title: <span id="title">Novice</span></p>
   </div>
 
-  <div class="floating-box" id="legacySection" style="display:none;">
-    <h2>Legacy XP Mode</h2>
-    <p><strong>Legacy XP:</strong> <span id="legacyXP">0</span></p>
-    <p><strong>Legacy Title:</strong> <span id="legacyTitle">Secrecy</span></p>
-  </div>
+  <canvas id="xpChart"></canvas>
 
-  <div class="floating-box">
+  <div class="leaderboard">
     <h2>Leaderboard</h2>
-    <table>
-      <thead>
-        <tr><th>#</th><th>Name</th><th>XP</th><th>Level</th><th>Title</th></tr>
-      </thead>
-      <tbody id="leaderboard"></tbody>
-    </table>
+    <ul id="leaderboardList"></ul>
   </div>
+
   <script>
-  let xp = +localStorage.getItem("xp") || 0;
-  let legacyXP = +localStorage.getItem("legacyXP") || 0;
-  let inLegacyMode = localStorage.getItem("inLegacyMode") === "true";
-  let level = 1;
-  let today = new Date().toLocaleDateString();
-  let xpHistory = JSON.parse(localStorage.getItem("xpHistory") || "{}");
-
-  const levelTitles = [
-    "Novice Shadow", "E-Rank Hunter", "D-Rank Hunter", "C-Rank Hunter",
-    "B-Rank Hunter", "A-Rank Hunter", "S-Rank Hunter", "Shadow Soldier",
-    "Elite Shadow", "Commander of Shadows", "Monarch in Training",
-    "Shadow Monarch", "Awakened Monarch", "Secrecy"
-  ];
-
-  const legacyTitles = [
-    [0, "Secrecy"], [100, "Shadowborn"], [250, "Void Initiate"],
-    [500, "Abyss Walker"], [750, "Eclipse Soul"], [1000, "Shadow Ascendant"],
-    [1500, "Monarch’s Echo"], [2000, "Legacy Wielder"],
-    [3000, "Dimensional Phantom"], [5000, "Transcendent One"],
-    [7500, "Timebreaker"], [10000, "God of the Grind"]
-  ];
-
-  const last = localStorage.getItem("lastUsername");
-  if (last) {
-    document.getElementById("username").value = last;
-    document.getElementById("currentUserDisplay").innerText = last;
-  }
-
-  function getXPFromExercise(data, showBreakdown = false) {
-    const breakdown = {
-      pushups: data.pushups * 1,
-      squats: data.squats * 0.5,
-      situps: data.situps * 1.5,
-      jumpingjacks: data.jumpingjacks * 0.2,
-      burpees: data.burpees * 2,
-      lunges: data.lunges * 0.3,
-      running: data.running * 0.5,
-      plank: Math.floor(data.plank / 10) * 1,
-      chinups: data.chinups * 0.6,
-      rows: data.rows * 0.3,
-      towel: Math.floor(data.towel / 10) * 1.5,
-      wrists: data.wrists * 0.7,
-      legraises: data.legraises * 0.3,
-      flutter: Math.floor(data.flutter / 10) * 1.5,
-      curls: data.curls * 0.9,
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
+      authDomain: "solo-levelling-35372.firebaseapp.com",
+      projectId: "solo-levelling-35372",
+      storageBucket: "solo-levelling-35372.appspot.com",
+      messagingSenderId: "177114822487",
+      appId: "1:177114822487:web:6e3cfee627c4eb0d637012"
     };
 
-    const totalXP = Object.values(breakdown).reduce((a, b) => a + b, 0);
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    if (showBreakdown) {
-      let breakdownMsg = "XP Breakdown:\\n";
-      for (const [exercise, xp] of Object.entries(breakdown)) {
-        if (xp > 0) breakdownMsg += `${exercise}: +${xp} XP\\n`;
-      }
-      alert(breakdownMsg + `\\nTotal: ${totalXP} XP`);
+    const xpChartCtx = document.getElementById('xpChart').getContext('2d');
+    const xpHistory = JSON.parse(localStorage.getItem('xpHistory') || '[]');
+    const exerciseMultipliers = {
+      "Push-ups": 0.4,
+      "Squats": 0.3,
+      "Sit-ups": 0.3,
+      "Jumping Jacks": 0.2,
+      "Burpees": 0.5,
+      "Lunges": 0.3,
+      "Running (min)": 0.2,
+      "Plank (sec)": 0.01,
+      "Chin-ups": 0.5,
+      "Rows": 0.4,
+      "Towel Hangs (sec)": 0.01,
+      "Wrist Rolls": 0.2,
+      "Crunches": 0.3,
+      "Leg Raises": 0.3,
+      "Flutter Kicks (sec)": 0.01,
+      "Curls": 0.3
+    };
+    const titles = ["Novice", "Apprentice", "Adept", "Expert", "Master", "Shadow Walker", "Wraith", "Phantom", "Specter", "Eclipse"];
+
+    let xp = parseFloat(localStorage.getItem('xp')) || 0;
+    let level = parseInt(localStorage.getItem('level')) || 1;
+
+    const xpElement = document.getElementById('xp');
+    const levelElement = document.getElementById('level');
+    const xpNeededElement = document.getElementById('xpNeeded');
+    const titleElement = document.getElementById('title');
+
+    function getXPNeeded(level) {
+      return 100 + (level - 1) * 50;
     }
 
-    return totalXP;
-  }
-
-  function getNextXPNeeded(level) {
-    if (level <= 10) return 100;
-    if (level <= 30) return 130;
-    if (level <= 50) return 150;
-    if (level <= 70) return 180;
-    if (level <= 90) return 200;
-    return 300;
-  }
-
-  function xpToLevel(xp) {
-    let lvl = 1, required = 100;
-    while (xp >= required && lvl < 100) {
-      xp -= required;
-      lvl++;
-      required = getNextXPNeeded(lvl);
-    }
-    return lvl;
-  }
-
-  function getTitle(level) {
-    const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
-    for (let i = thresholds.length - 1; i >= 0; i--) {
-      if (level >= thresholds[i]) return levelTitles[i];
-    }
-    return levelTitles[0];
-  }
-
-  function getLegacyTitle(xp) {
-    let title = "Secrecy";
-    for (let i = 0; i < legacyTitles.length; i++) {
-      if (xp >= legacyTitles[i][0]) title = legacyTitles[i][1];
-    }
-    return title;
-  }
-
-  function updateUI() {
-    const bar = document.getElementById("xpBar");
-    const titleEl = document.getElementById("titleDisplay");
-
-    if (!inLegacyMode) {
-      level = xpToLevel(xp);
-      document.getElementById("level").innerText = level;
-      document.getElementById("totalXP").innerText = xp;
-
-      let req = getNextXPNeeded(level);
-      let xpThisLevel = xp;
-      for (let i = 1; i < level; i++) xpThisLevel -= getNextXPNeeded(i);
-
-      document.getElementById("xpToNext").innerText = req - xpThisLevel;
-      bar.style.width = `${(xpThisLevel / req) * 100}%`;
-
-      titleEl.innerText = getTitle(level);
-
-      const thresholds = [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 100];
-      for (let i = 0; i < thresholds.length; i++) {
-        if (level < thresholds[i]) {
-          document.getElementById("nextRankName").innerText = levelTitles[i];
-          document.getElementById("levelsToNext").innerText = thresholds[i] - level;
-          break;
-        }
-      }
-    } else {
-      document.getElementById("legacySection").style.display = "block";
-      document.getElementById("legacyXP").innerText = legacyXP;
-      document.getElementById("legacyTitle").innerText = getLegacyTitle(legacyXP);
+    function updateDisplay() {
+      const xpNeeded = getXPNeeded(level);
+      xpElement.textContent = xp.toFixed(1);
+      levelElement.textContent = level;
+      xpNeededElement.textContent = xpNeeded.toFixed(1);
+      titleElement.textContent = titles[Math.min(level - 1, titles.length - 1)];
     }
 
-    document.getElementById("dailyXP").innerText = xpHistory[today] || 0;
-
-    let weekTotal = 0;
-    for (const d in xpHistory) {
-      const diff = (new Date() - new Date(d)) / (1000 * 60 * 60 * 24);
-      if (diff <= 7) weekTotal += xpHistory[d];
+    function updateChart() {
+      const labels = xpHistory.map(entry => entry.date);
+      const data = xpHistory.map(entry => entry.xp);
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.update();
     }
-    document.getElementById("weeklyXP").innerText = weekTotal;
 
-    updateLeaderboard();
-  }
-
-  function showXPPopup(amount) {
-    const popup = document.getElementById("xp-popup");
-    popup.innerText = `+${amount} XP Gained!`;
-    popup.style.display = "block";
-    popup.style.opacity = "1";
-    setTimeout(() => {
-      popup.style.opacity = "0";
-    }, 1000);
-    setTimeout(() => {
-      popup.style.display = "none";
-    }, 1500);
-  }
-
-
-    let xpHistory = JSON.parse(localStorage.getItem('xpHistory')) || [];
-let xpChart;
-
-function addXP(amount) {
-  xp += amount;
-  updateLevel(); // Your existing level-up logic
-  saveXP();
-  logXPHistory(xp);
-  updateXPChart();
-}
-
-function logXPHistory(currentXP) {
-  const today = new Date().toLocaleDateString();
-
-  // Avoid duplicate entries for the same day
-  const existingIndex = xpHistory.findIndex(entry => entry.date === today);
-  if (existingIndex !== -1) {
-    xpHistory[existingIndex].xp = currentXP;
-  } else {
-    xpHistory.push({ date: today, xp: currentXP });
-  }
-
-  localStorage.setItem('xpHistory', JSON.stringify(xpHistory));
-}
-
-function updateXPChart() {
-  const labels = xpHistory.map(entry => entry.date);
-  const data = xpHistory.map(entry => entry.xp);
-  const ctx = document.getElementById('xpChart').getContext('2d');
-
-  if (xpChart) {
-    xpChart.data.labels = labels;
-    xpChart.data.datasets[0].data = data;
-    xpChart.update();
-  } else {
-    xpChart = new Chart(ctx, {
+    const chart = new Chart(xpChartCtx, {
       type: 'line',
       data: {
-        labels: labels,
+        labels: [],
         datasets: [{
           label: 'XP Over Time',
-          data: data,
-          borderColor: 'rgba(75, 192, 192, 1)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          fill: true,
-          tension: 0.3
+          data: [],
+          borderColor: '#0f0',
+          backgroundColor: 'rgba(0,255,0,0.1)',
+          fill: true
         }]
       },
       options: {
-        responsive: true,
         scales: {
           y: {
             beginAtZero: true
@@ -385,150 +146,71 @@ function updateXPChart() {
         }
       }
     });
-  }
-}
 
-// Call it on page load
-updateXPChart();
+    function logXP() {
+      const amount = parseFloat(document.getElementById('amount').value);
+      const exercise = document.getElementById('exercise').value;
+      const username = document.getElementById('username').value.trim();
 
-    
-</script>
-  <script type="module">
-  // Firebase imports
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-  import {
-    getFirestore, collection, getDocs, setDoc, doc, getDoc
-  } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+      if (!username) return alert("Enter a username.");
+      if (isNaN(amount) || amount <= 0) return alert("Enter a valid amount.");
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyAsCg5BHz-kWl53Ef_4MpJXU47lRX5-3tE",
-    authDomain: "solo-levelling-35372.firebaseapp.com",
-    projectId: "solo-levelling-35372",
-    storageBucket: "solo-levelling-35372.appspot.com",
-    messagingSenderId: "177114822487",
-    appId: "1:177114822487:web:6e3cfee627c4eb0d637012"
-  };
+      const xpGain = amount * (exerciseMultipliers[exercise] || 0.2);
+      xp += xpGain;
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  window.db = db;
-
-  // Fetch leaderboard users from Firestore
-  async function fetchLeaderboardFromFirestore() {
-    try {
-      const querySnapshot = await getDocs(collection(db, "leaderboard"));
-      let users = [];
-      querySnapshot.forEach((doc) => {
-        users.push(doc.data());
-      });
-      return users;
-    } catch (err) {
-      const debug = document.getElementById("debugOutput");
-      debug.innerText = "Firestore fetch error:\n" + err.message;
-      return [];
-    }
-  }
-
-  // Update leaderboard table
-  async function updateLeaderboard() {
-  try {
-    const users = await fetchLeaderboardFromFirestore();
-    if (!users || users.length === 0) return;
-
-    users.sort((a, b) => b.xp - a.xp);
-    const tbody = document.getElementById("leaderboard");
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
-
-    users.forEach((player, index) => {
-      const level = xpToLevel(player.xp);
-      const title = getTitle(level);
-      const row = document.createElement("tr");
-      if (index === 0) row.style.color = "#ffd700";
-      else if (index === 1) row.style.color = "#c0c0c0";
-      else if (index === 2) row.style.color = "#cd7f32";
-      row.innerHTML = `<td>#${index + 1}</td><td>${player.name}</td><td>${player.xp}</td><td>${level}</td><td>${title}</td>`;
-      tbody.appendChild(row);
-    });
-  } catch (err) {
-    console.error("Error updating leaderboard:", err.message);
-  }
-}
-  // Log XP function (already defined in earlier parts)
-  async function logXP() {
-    const username = document.getElementById("username").value.trim() || "Anonymous";
-    document.getElementById("currentUserDisplay").innerText = username;
-
-    const data = {
-      pushups: +document.getElementById("pushups").value || 0,
-      squats: +document.getElementById("squats").value || 0,
-      situps: +document.getElementById("situps").value || 0,
-      jumpingjacks: +document.getElementById("jumpingjacks").value || 0,
-      burpees: +document.getElementById("burpees").value || 0,
-      lunges: +document.getElementById("lunges").value || 0,
-      running: +document.getElementById("running").value || 0,
-      plank: +document.getElementById("plank").value || 0,
-      chinups: +document.getElementById("chinups").value || 0,
-      rows: +document.getElementById("rows").value || 0,
-      towel: +document.getElementById("towel").value || 0,
-      wrists: +document.getElementById("wrists").value || 0,
-      legraises: +document.getElementById("legraises").value || 0,
-      flutter: +document.getElementById("flutter").value || 0,
-      curls: +document.getElementById("curls").value || 0
-    };
-
-    const limits = {
-      pushups: 100, squats: 100, situps: 100, jumpingjacks: 200,
-      burpees: 100, lunges: 100, running: 60, plank: 300,
-      chinups: 50, rows: 50, towel: 180, wrists: 100,
-       legraises: 100, flutter: 180, curls: 100
-    };
-
-    for (let key in data) {
-      if (data[key] > limits[key]) {
-        alert(`${key} exceeds max. Reset to ${limits[key]}`);
-        data[key] = limits[key];
+      while (xp >= getXPNeeded(level)) {
+        xp -= getXPNeeded(level);
+        level++;
       }
+
+      localStorage.setItem('xp', xp);
+      localStorage.setItem('level', level);
+      updateDisplay();
+
+      const today = new Date().toISOString().split('T')[0];
+      const existing = xpHistory.find(entry => entry.date === today);
+      if (existing) {
+        existing.xp += xpGain;
+      } else {
+        xpHistory.push({ date: today, xp: xpGain });
+      }
+
+      localStorage.setItem('xpHistory', JSON.stringify(xpHistory));
+      updateChart();
+
+      // Update leaderboard
+      db.collection('leaderboard').doc(username).set({
+        username: username,
+        level: level,
+        xp: xp,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      loadLeaderboard();
     }
 
-    const gainedXP = getXPFromExercise(data, true);
-    showXPPopup(gainedXP);
-
-    if (inLegacyMode) {
-      legacyXP += gainedXP;
-    } else {
-      xp += gainedXP;
-      if (xpToLevel(xp) >= 100) inLegacyMode = true;
+    function loadLeaderboard() {
+      db.collection('leaderboard')
+        .orderBy('level', 'desc')
+        .orderBy('xp', 'desc')
+        .limit(10)
+        .get()
+        .then(snapshot => {
+          const list = document.getElementById('leaderboardList');
+          list.innerHTML = '';
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const li = document.createElement('li');
+            li.textContent = `${data.username}: Level ${data.level} (${data.xp.toFixed(1)} XP)`;
+            list.appendChild(li);
+          });
+        });
     }
 
-    xpHistory[today] = (xpHistory[today] || 0) + gainedXP;
-    localStorage.setItem("xpHistory", JSON.stringify(xpHistory));
-    localStorage.setItem("xp", xp);
-    localStorage.setItem("legacyXP", legacyXP);
-    localStorage.setItem("inLegacyMode", inLegacyMode);
-    localStorage.setItem("lastUsername", username);
-
-    await setDoc(doc(db, "leaderboard", username), {
-      name: username,
-      xp: inLegacyMode ? legacyXP : xp
-    });
-
-    updateUI();
-  }
-
-  // Expose functions to the global scope
-  window.db = db;
-  window.logXP = logXP;
-  window.updateLeaderboard = updateLeaderboard;
-  window.fetchLeaderboardFromFirestore = fetchLeaderboardFromFirestore;
-
-  // Refresh UI when page loads
-  window.addEventListener("DOMContentLoaded", () => {
-    updateUI();
-  });
-    
-</script>
+    // Initialize
+    updateDisplay();
+    updateChart();
+    loadLeaderboard();
+  </script>
 </body>
 </html>
