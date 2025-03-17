@@ -1,29 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Shadow XP Tracker</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #111; color: #eee; }
-    h1 { color: #0f0; }
-    input, select, button { margin: 5px 0; padding: 8px; font-size: 16px; }
-    .level { margin-top: 10px; }
-    canvas { max-width: 600px; margin-top: 20px; }
-    .leaderboard { margin-top: 20px; }
+    body {
+      background-color: black;
+      color: lime;
+      font-family: monospace;
+      padding: 20px;
+    }
+    select, input, button {
+      padding: 5px;
+      margin: 5px 0;
+      background: #111;
+      color: lime;
+      border: 1px solid lime;
+    }
+    .level-info {
+      margin-top: 10px;
+    }
+    canvas {
+      background: #111;
+      border: 1px solid lime;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Shadow XP Tracker</h1>
-
-  <label>Username:</label>
-  <input type="text" id="username" placeholder="Enter your name" />
-  <br>
-
-  <label>Exercise:</label>
+  Username: <input type="text" id="username" placeholder="Enter name"><br>
+  Exercise:
   <select id="exercise">
     <option value="Push-ups">Push-ups</option>
     <option value="Squats">Squats</option>
@@ -41,25 +50,20 @@
     <option value="Leg Raises">Leg Raises</option>
     <option value="Flutter Kicks (sec)">Flutter Kicks (sec)</option>
     <option value="Curls">Curls</option>
-  </select>
-  <br>
-
-  <label>Amount:</label>
-  <input type="number" id="amount" />
+  </select><br>
+  Amount: <input type="number" id="amount"><br>
   <button onclick="logXP()">Log XP</button>
 
-  <div class="level">
+  <div class="level-info">
     <p>Level: <span id="level">1</span></p>
     <p>XP: <span id="xp">0</span> / <span id="xpNeeded">100</span></p>
     <p>Title: <span id="title">Novice</span></p>
   </div>
 
-  <canvas id="xpChart"></canvas>
+  <canvas id="xpChart" width="600" height="300"></canvas>
 
-  <div class="leaderboard">
-    <h2>Leaderboard</h2>
-    <ul id="leaderboardList"></ul>
-  </div>
+  <h2>Leaderboard</h2>
+  <ul id="leaderboardList"></ul>
 
   <script>
     // Firebase config
@@ -72,90 +76,66 @@
       appId: "1:177114822487:web:6e3cfee627c4eb0d637012"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const xpChartCtx = document.getElementById('xpChart').getContext('2d');
-    const xpHistory = JSON.parse(localStorage.getItem('xpHistory') || '[]');
-    const exerciseMultipliers = {
-      "Push-ups": 0.4,
-      "Squats": 0.3,
-      "Sit-ups": 0.3,
-      "Jumping Jacks": 0.2,
-      "Burpees": 0.5,
-      "Lunges": 0.3,
-      "Running (min)": 0.2,
-      "Plank (sec)": 0.01,
-      "Chin-ups": 0.5,
-      "Rows": 0.4,
-      "Towel Hangs (sec)": 0.01,
-      "Wrist Rolls": 0.2,
-      "Crunches": 0.3,
-      "Leg Raises": 0.3,
-      "Flutter Kicks (sec)": 0.01,
-      "Curls": 0.3
+    const multipliers = {
+      "Push-ups": 0.4, "Squats": 0.3, "Sit-ups": 0.3, "Jumping Jacks": 0.2,
+      "Burpees": 0.5, "Lunges": 0.3, "Running (min)": 0.2, "Plank (sec)": 0.01,
+      "Chin-ups": 0.5, "Rows": 0.4, "Towel Hangs (sec)": 0.01, "Wrist Rolls": 0.2,
+      "Crunches": 0.3, "Leg Raises": 0.3, "Flutter Kicks (sec)": 0.01, "Curls": 0.3
     };
     const titles = ["Novice", "Apprentice", "Adept", "Expert", "Master", "Shadow Walker", "Wraith", "Phantom", "Specter", "Eclipse"];
 
     let xp = parseFloat(localStorage.getItem('xp')) || 0;
     let level = parseInt(localStorage.getItem('level')) || 1;
+    const history = JSON.parse(localStorage.getItem('xpHistory') || '[]');
 
-    const xpElement = document.getElementById('xp');
-    const levelElement = document.getElementById('level');
-    const xpNeededElement = document.getElementById('xpNeeded');
-    const titleElement = document.getElementById('title');
+    const xpEl = document.getElementById('xp');
+    const levelEl = document.getElementById('level');
+    const xpNeededEl = document.getElementById('xpNeeded');
+    const titleEl = document.getElementById('title');
 
-    function getXPNeeded(level) {
-      return 100 + (level - 1) * 50;
-    }
-
-    function updateDisplay() {
-      const xpNeeded = getXPNeeded(level);
-      xpElement.textContent = xp.toFixed(1);
-      levelElement.textContent = level;
-      xpNeededElement.textContent = xpNeeded.toFixed(1);
-      titleElement.textContent = titles[Math.min(level - 1, titles.length - 1)];
-    }
-
-    function updateChart() {
-      const labels = xpHistory.map(entry => entry.date);
-      const data = xpHistory.map(entry => entry.xp);
-      chart.data.labels = labels;
-      chart.data.datasets[0].data = data;
-      chart.update();
-    }
-
-    const chart = new Chart(xpChartCtx, {
+    const chart = new Chart(document.getElementById('xpChart').getContext('2d'), {
       type: 'line',
       data: {
         labels: [],
         datasets: [{
           label: 'XP Over Time',
           data: [],
-          borderColor: '#0f0',
-          backgroundColor: 'rgba(0,255,0,0.1)',
+          borderColor: 'lime',
+          backgroundColor: 'rgba(0,255,0,0.2)',
           fill: true
         }]
       },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
+      options: { scales: { y: { beginAtZero: true } } }
     });
 
+    function getXPNeeded(lvl) {
+      return 100 + (lvl - 1) * 50;
+    }
+
+    function updateDisplay() {
+      xpEl.textContent = xp.toFixed(1);
+      levelEl.textContent = level;
+      xpNeededEl.textContent = getXPNeeded(level).toFixed(1);
+      titleEl.textContent = titles[Math.min(level - 1, titles.length - 1)];
+    }
+
+    function updateChart() {
+      chart.data.labels = history.map(h => h.date);
+      chart.data.datasets[0].data = history.map(h => h.xp);
+      chart.update();
+    }
+
     function logXP() {
-      const amount = parseFloat(document.getElementById('amount').value);
+      const amt = parseFloat(document.getElementById('amount').value);
       const exercise = document.getElementById('exercise').value;
-      const username = document.getElementById('username').value.trim();
+      const user = document.getElementById('username').value.trim();
+      if (!user) return alert("Enter a username!");
+      if (isNaN(amt) || amt <= 0) return alert("Enter valid amount");
 
-      if (!username) return alert("Enter a username.");
-      if (isNaN(amount) || amount <= 0) return alert("Enter a valid amount.");
-
-      const xpGain = amount * (exerciseMultipliers[exercise] || 0.2);
+      const xpGain = amt * (multipliers[exercise] || 0.2);
       xp += xpGain;
 
       while (xp >= getXPNeeded(level)) {
@@ -168,25 +148,22 @@
       updateDisplay();
 
       const today = new Date().toISOString().split('T')[0];
-      const existing = xpHistory.find(entry => entry.date === today);
-      if (existing) {
-        existing.xp += xpGain;
-      } else {
-        xpHistory.push({ date: today, xp: xpGain });
-      }
+      const entry = history.find(h => h.date === today);
+      if (entry) entry.xp += xpGain;
+      else history.push({ date: today, xp: xpGain });
 
-      localStorage.setItem('xpHistory', JSON.stringify(xpHistory));
+      localStorage.setItem('xpHistory', JSON.stringify(history));
       updateChart();
 
-      // Update leaderboard
-      db.collection('leaderboard').doc(username).set({
-        username: username,
+      // Leaderboard update
+      db.collection('leaderboard').doc(user).set({
+        username: user,
         level: level,
         xp: xp,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      loadLeaderboard();
+      }).then(() => {
+        loadLeaderboard();
+      }).catch(console.error);
     }
 
     function loadLeaderboard() {
@@ -204,10 +181,9 @@
             li.textContent = `${data.username}: Level ${data.level} (${data.xp.toFixed(1)} XP)`;
             list.appendChild(li);
           });
-        });
+        }).catch(console.error);
     }
 
-    // Initialize
     updateDisplay();
     updateChart();
     loadLeaderboard();
