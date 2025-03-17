@@ -326,6 +326,72 @@
       popup.style.display = "none";
     }, 1500);
   }
+
+
+    let xpHistory = JSON.parse(localStorage.getItem('xpHistory')) || [];
+let xpChart;
+
+function addXP(amount) {
+  xp += amount;
+  updateLevel(); // Your existing level-up logic
+  saveXP();
+  logXPHistory(xp);
+  updateXPChart();
+}
+
+function logXPHistory(currentXP) {
+  const today = new Date().toLocaleDateString();
+
+  // Avoid duplicate entries for the same day
+  const existingIndex = xpHistory.findIndex(entry => entry.date === today);
+  if (existingIndex !== -1) {
+    xpHistory[existingIndex].xp = currentXP;
+  } else {
+    xpHistory.push({ date: today, xp: currentXP });
+  }
+
+  localStorage.setItem('xpHistory', JSON.stringify(xpHistory));
+}
+
+function updateXPChart() {
+  const labels = xpHistory.map(entry => entry.date);
+  const data = xpHistory.map(entry => entry.xp);
+  const ctx = document.getElementById('xpChart').getContext('2d');
+
+  if (xpChart) {
+    xpChart.data.labels = labels;
+    xpChart.data.datasets[0].data = data;
+    xpChart.update();
+  } else {
+    xpChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'XP Over Time',
+          data: data,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+}
+
+// Call it on page load
+updateXPChart();
+
+    
 </script>
   <script type="module">
   // Firebase imports
@@ -462,79 +528,6 @@
   window.addEventListener("DOMContentLoaded", () => {
     updateUI();
   });
-
-
-    let xpHistory = JSON.parse(localStorage.getItem("xpHistory")) || [];
-
-function logExercises() {
-  let sessionXp = 0;
-  exercises.forEach((exercise, index) => {
-    const input = document.getElementById(`exercise-${index}`);
-    const reps = parseInt(input.value) || 0;
-    sessionXp += reps * exercise.xp;
-    input.value = "";
-  });
-
-  xp += sessionXp;
-  localStorage.setItem("totalXp", xp);
-  level = Math.floor(xp / 10) + 1;
-
-  document.getElementById("totalXp").textContent = `Total XP: ${xp.toFixed(1)}`;
-  document.getElementById("level").textContent = `Level: ${level}`;
-
-  const today = new Date().toISOString().slice(0, 10);
-  const todayEntry = xpHistory.find(entry => entry.date === today);
-  if (todayEntry) {
-    todayEntry.xp += sessionXp;
-  } else {
-    xpHistory.push({ date: today, xp: sessionXp });
-  }
-
-  xpHistory = xpHistory.slice(-14); // Keep 14 days only
-  localStorage.setItem("xpHistory", JSON.stringify(xpHistory));
-  updateChart();
-}
-
-function updateChart() {
-  const labels = xpHistory.map(entry => entry.date);
-  const data = xpHistory.map(entry => parseFloat(entry.xp.toFixed(2)));
-
-  if (window.xpChart) {
-    window.xpChart.data.labels = labels;
-    window.xpChart.data.datasets[0].data = data;
-    window.xpChart.update();
-    return;
-  }
-
-  const ctx = document.getElementById('xpChart').getContext('2d');
-  window.xpChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Daily XP',
-        data: data,
-        borderColor: '#4bc0c0',
-        backgroundColor: 'rgba(75,192,192,0.1)',
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      },
-      plugins: {
-        legend: {
-          labels: { color: '#eee' }
-        }
-      }
-    }
-  });
-}
-
-updateChart(); // Show chart on load
-
     
 </script>
 </body>
