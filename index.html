@@ -117,6 +117,7 @@
       box-shadow: 0 0 20px #4da6ff99;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <h1>Shadow XP Tracker</h1>
@@ -131,6 +132,8 @@
   <div class="xp-bar-container">
     <div class="xp-bar" id="xpBar"></div>
   </div>
+  
+  <canvas id="xpChart" width="400" height="200"></canvas>
 
   <div id="xp-popup">+100 XP Gained!</div>
     <div class="floating-box">
@@ -149,7 +152,6 @@
     <div><label>Rows <span class="tag">Back/Biceps</span></label><input type="number" id="rows" max="50" placeholder="Max: 50" /></div>
     <div><label>Towel Hangs (sec) <span class="tag">Forearms</span></label><input type="number" id="towel" max="180" placeholder="Max: 180 sec" /></div>
     <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" max="100" placeholder="Max: 100" /></div>
-    <div><label>Crunches <span class="tag">Abs</span></label><input type="number" id="crunches" max="100" placeholder="Max: 100" /></div>
     <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" max="100" placeholder="Max: 100" /></div>
     <div><label>Flutter Kicks (sec) <span class="tag">Abs</span></label><input type="number" id="flutter" max="180" placeholder="Max: 180 sec" /></div>
     <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" max="100" placeholder="Max: 100" /></div>
@@ -203,22 +205,21 @@
 
   function getXPFromExercise(data, showBreakdown = false) {
     const breakdown = {
-      pushups: data.pushups * 2,
-      squats: data.squats * 1.8,
+      pushups: data.pushups * 1,
+      squats: data.squats * 0.5,
       situps: data.situps * 1.5,
-      jumpingjacks: data.jumpingjacks * 1,
+      jumpingjacks: data.jumpingjacks * 0.2,
       burpees: data.burpees * 2,
-      lunges: data.lunges * 1.8,
-      running: data.running * 2,
+      lunges: data.lunges * 0.3,
+      running: data.running * 0.5,
       plank: Math.floor(data.plank / 10) * 1,
-      chinups: data.chinups * 2,
-      rows: data.rows * 1.5,
+      chinups: data.chinups * 0.6,
+      rows: data.rows * 0.3,
       towel: Math.floor(data.towel / 10) * 1.5,
-      wrists: data.wrists * 1,
-      crunches: data.crunches * 1.5,
-      legraises: data.legraises * 2,
+      wrists: data.wrists * 0.7,
+      legraises: data.legraises * 0.3,
       flutter: Math.floor(data.flutter / 10) * 1.5,
-      curls: data.curls * 2
+      curls: data.curls * 0.9,
     };
 
     const totalXP = Object.values(breakdown).reduce((a, b) => a + b, 0);
@@ -236,11 +237,11 @@
 
   function getNextXPNeeded(level) {
     if (level <= 10) return 100;
-    if (level <= 30) return 150;
-    if (level <= 50) return 200;
-    if (level <= 70) return 250;
-    if (level <= 90) return 300;
-    return 400;
+    if (level <= 30) return 130;
+    if (level <= 50) return 150;
+    if (level <= 70) return 180;
+    if (level <= 90) return 200;
+    return 300;
   }
 
   function xpToLevel(xp) {
@@ -407,7 +408,6 @@
       rows: +document.getElementById("rows").value || 0,
       towel: +document.getElementById("towel").value || 0,
       wrists: +document.getElementById("wrists").value || 0,
-      crunches: +document.getElementById("crunches").value || 0,
       legraises: +document.getElementById("legraises").value || 0,
       flutter: +document.getElementById("flutter").value || 0,
       curls: +document.getElementById("curls").value || 0
@@ -417,7 +417,7 @@
       pushups: 100, squats: 100, situps: 100, jumpingjacks: 200,
       burpees: 100, lunges: 100, running: 60, plank: 300,
       chinups: 50, rows: 50, towel: 180, wrists: 100,
-      crunches: 100, legraises: 100, flutter: 180, curls: 100
+       legraises: 100, flutter: 180, curls: 100
     };
 
     for (let key in data) {
@@ -462,6 +462,80 @@
   window.addEventListener("DOMContentLoaded", () => {
     updateUI();
   });
+
+
+    let xpHistory = JSON.parse(localStorage.getItem("xpHistory")) || [];
+
+function logExercises() {
+  let sessionXp = 0;
+  exercises.forEach((exercise, index) => {
+    const input = document.getElementById(`exercise-${index}`);
+    const reps = parseInt(input.value) || 0;
+    sessionXp += reps * exercise.xp;
+    input.value = "";
+  });
+
+  xp += sessionXp;
+  localStorage.setItem("totalXp", xp);
+  level = Math.floor(xp / 10) + 1;
+
+  document.getElementById("totalXp").textContent = `Total XP: ${xp.toFixed(1)}`;
+  document.getElementById("level").textContent = `Level: ${level}`;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const todayEntry = xpHistory.find(entry => entry.date === today);
+  if (todayEntry) {
+    todayEntry.xp += sessionXp;
+  } else {
+    xpHistory.push({ date: today, xp: sessionXp });
+  }
+
+  xpHistory = xpHistory.slice(-14); // Keep 14 days only
+  localStorage.setItem("xpHistory", JSON.stringify(xpHistory));
+  updateChart();
+}
+
+function updateChart() {
+  const labels = xpHistory.map(entry => entry.date);
+  const data = xpHistory.map(entry => parseFloat(entry.xp.toFixed(2)));
+
+  if (window.xpChart) {
+    window.xpChart.data.labels = labels;
+    window.xpChart.data.datasets[0].data = data;
+    window.xpChart.update();
+    return;
+  }
+
+  const ctx = document.getElementById('xpChart').getContext('2d');
+  window.xpChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Daily XP',
+        data: data,
+        borderColor: '#4bc0c0',
+        backgroundColor: 'rgba(75,192,192,0.1)',
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      },
+      plugins: {
+        legend: {
+          labels: { color: '#eee' }
+        }
+      }
+    }
+  });
+}
+
+updateChart(); // Show chart on load
+
+    
 </script>
 </body>
 </html>
