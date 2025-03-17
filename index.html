@@ -149,7 +149,6 @@
     <div><label>Rows <span class="tag">Back/Biceps</span></label><input type="number" id="rows" max="50" placeholder="Max: 50" /></div>
     <div><label>Towel Hangs (sec) <span class="tag">Forearms</span></label><input type="number" id="towel" max="180" placeholder="Max: 180 sec" /></div>
     <div><label>Wrist Rolls <span class="tag">Forearms</span></label><input type="number" id="wrists" max="100" placeholder="Max: 100" /></div>
-    <div><label>Crunches <span class="tag">Abs</span></label><input type="number" id="crunches" max="100" placeholder="Max: 100" /></div>
     <div><label>Leg Raises <span class="tag">Lower Abs</span></label><input type="number" id="legraises" max="100" placeholder="Max: 100" /></div>
     <div><label>Flutter Kicks (sec) <span class="tag">Abs</span></label><input type="number" id="flutter" max="180" placeholder="Max: 180 sec" /></div>
     <div><label>Curls <span class="tag">Biceps</span></label><input type="number" id="curls" max="100" placeholder="Max: 100" /></div>
@@ -203,22 +202,21 @@
 
   function getXPFromExercise(data, showBreakdown = false) {
     const breakdown = {
-      pushups: data.pushups * 2,
-      squats: data.squats * 1.8,
-      situps: data.situps * 1.5,
-      jumpingjacks: data.jumpingjacks * 1,
+      pushups: data.pushups * 1,
+      squats: data.squats * 0.8,
+      situps: data.situps * 1,
+      jumpingjacks: data.jumpingjacks * 0.2,
       burpees: data.burpees * 2,
-      lunges: data.lunges * 1.8,
-      running: data.running * 2,
+      lunges: data.lunges * 0.1,
+      running: data.running * 0.5,
       plank: Math.floor(data.plank / 10) * 1,
-      chinups: data.chinups * 2,
-      rows: data.rows * 1.5,
-      towel: Math.floor(data.towel / 10) * 1.5,
-      wrists: data.wrists * 1,
-      crunches: data.crunches * 1.5,
-      legraises: data.legraises * 2,
-      flutter: Math.floor(data.flutter / 10) * 1.5,
-      curls: data.curls * 2
+      chinups: data.chinups * 0,6,
+      rows: data.rows * 0.6,
+      towel: Math.floor(data.towel / 10) * 0.8,
+      wrists: data.wrists * 0.4,
+      legraises: data.legraises * 0.9,
+      flutter: Math.floor(data.flutter / 10) * 1,
+      curls: data.curls * 0.8,
     };
 
     const totalXP = Object.values(breakdown).reduce((a, b) => a + b, 0);
@@ -236,11 +234,11 @@
 
   function getNextXPNeeded(level) {
     if (level <= 10) return 100;
-    if (level <= 30) return 150;
-    if (level <= 50) return 200;
-    if (level <= 70) return 250;
-    if (level <= 90) return 300;
-    return 400;
+    if (level <= 30) return 120;
+    if (level <= 50) return 140;
+    if (level <= 70) return 160;
+    if (level <= 90) return 180;
+    return 200;
   }
 
   function xpToLevel(xp) {
@@ -407,7 +405,6 @@
       rows: +document.getElementById("rows").value || 0,
       towel: +document.getElementById("towel").value || 0,
       wrists: +document.getElementById("wrists").value || 0,
-      crunches: +document.getElementById("crunches").value || 0,
       legraises: +document.getElementById("legraises").value || 0,
       flutter: +document.getElementById("flutter").value || 0,
       curls: +document.getElementById("curls").value || 0
@@ -417,7 +414,7 @@
       pushups: 100, squats: 100, situps: 100, jumpingjacks: 200,
       burpees: 100, lunges: 100, running: 60, plank: 300,
       chinups: 50, rows: 50, towel: 180, wrists: 100,
-      crunches: 100, legraises: 100, flutter: 180, curls: 100
+      legraises: 100, flutter: 180, curls: 100
     };
 
     for (let key in data) {
